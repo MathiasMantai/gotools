@@ -1,8 +1,8 @@
 package db
 
 import (
-	"net/http"
 	"github.com/MathiasMantai/gotools/db"
+	"net/http"
 )
 
 type Dbs interface {
@@ -10,8 +10,8 @@ type Dbs interface {
 }
 
 type WebRouter[T Dbs] struct {
-	LastRoute string
-	DbContainer map[string](T)
+	LastRoute      string
+	DbContainer    map[string](T)
 	RouteContainer map[string]interface{}
 }
 
@@ -20,12 +20,12 @@ func (wr *WebRouter[T]) InitRouteContainer() {
 }
 
 func (wr *WebRouter[T]) InitDbContainer() {
-    wr.DbContainer = make(map[string](T))
+	wr.DbContainer = make(map[string](T))
 }
 
 func (wr *WebRouter[T]) Init() {
 	wr.InitRouteContainer()
-    wr.InitDbContainer()
+	wr.InitDbContainer()
 }
 
 func (wr *WebRouter[T]) RegisterDb(label string, db T) {
@@ -33,7 +33,7 @@ func (wr *WebRouter[T]) RegisterDb(label string, db T) {
 }
 
 func (wr *WebRouter[T]) GetDb(label string) T {
-    return wr.DbContainer[label]
+	return wr.DbContainer[label]
 }
 
 func (wr *WebRouter[T]) RegisterRoute(label string, routeFunc interface{}) {
