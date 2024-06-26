@@ -1,13 +1,17 @@
 package log
 
 import (
-	// "archive/zip"
+	"archive/zip"
 	"errors"
 	"fmt"
+	// "io/fs"
 	"os"
-	"strings"
-	"time"
 	"path/filepath"
+	"strings"
+	// "time"
+	"io"
+	"strconv"
+
 )
 
 type FileLogger struct {
@@ -15,11 +19,12 @@ type FileLogger struct {
 	TimeLayout string
 	BeforeTime string
 	AfterTime  string
-	KeepOldest int32
+	KeepOldest int
 	DirPath    string
 	LogFilePrefix  string
 	LogMessagePrefix string
 	UseTimestamp bool
+	LatestLogFileName string
 }
 
 /* Setter */
@@ -36,36 +41,129 @@ func (l *FileLogger) SetUseTimestamp(value bool) {
 	l.UseTimestamp = value
 }
 
+func (l *FileLogger) SetKeepOldest(value int) {
+	l.KeepOldest = value
+}
+
 
 /* Getter */
 
-func (l *FileLogger) LogRotate() bool {
-	files, readDirError := os.ReadDir(l.DirPath)
+/* Log file Rotation */
+func (l *FileLogger) LogRotate() error {
+	files, readDirError := l.GetLogFilesNamesInDir(l.DirPath)
 
 	if readDirError != nil {
 		panic(readDirError)
 	}
 
-	for _, file := range files {
-		fmt.Println(file.Name())
-		logName := file.Name()
-		logTime := strings.Replace(logName, l.LogFilePrefix, "", -1)
-		tmpTime, parseTimeError := time.Parse("01.12.2006 13:25", logTime)
+	logCnt := len(files)
 
-		if parseTimeError != nil {
-			panic(parseTimeError)
+	if logCnt > int(l.KeepOldest) {
+		archiveName, getArchiveNameError := l.GetLatestArchiveFileName(l.DirPath)
+		if getArchiveNameError!= nil {
+            return fmt.Errorf("x> error while getting archive name: %v", getArchiveNameError)
+        }
+
+		if strings.TrimSpace(archiveName) == "" {
+			return errors.New("x> archive name is empty")
 		}
 
-		since := time.Since(tmpTime)
-		sinceInDays := (since.Hours() / 24)
+		archive, err:=os.Create(archiveName)
+		if err!=nil{
+			return err
+		}
 
-		if sinceInDays >= float64(l.KeepOldest) {
-			//zip log
+		defer archive.Close()
+
+		for _, file := range files {
+			fmt.Println(file)
+			logFilePath := filepath.Join(l.DirPath, file)
+			zipWriter := zip.NewWriter(archive)
+			defer zipWriter.Close()
+
+			logFile, logFileOpenError := os.Open(logFilePath)
+			if logFileOpenError!= nil {
+                return logFileOpenError
+            }
+			defer logFile.Close()
+
+			writer, createWriterError := zipWriter.Create(file)
+			if createWriterError!= nil {
+                return createWriterError
+            }
+			
+			_, copyError := io.Copy(writer, logFile)
+			if copyError!= nil {
+                return copyError
+            }
+
+			//remove file
+			deleteFileError := os.Remove(logFilePath)
+			if deleteFileError != nil {
+				return deleteFileError
+			}
 		}
 	}
 
-	return true
+	return nil
 }
+
+func (l *FileLogger) GetLogFilesNamesInDir(dir string) ([]string, error) {
+	files, readDirError := os.ReadDir(dir)
+
+    if readDirError!= nil {
+        return nil, readDirError
+    }
+
+	var rs []string
+
+	for _, file := range files {
+
+		if strings.Contains(file.Name(), ".log") {
+			rs = append(rs, file.Name())
+		}
+	}
+
+    return rs, nil
+}
+
+func (l *FileLogger) GetArchiveCount(dir string) (int, error) {
+	files, readDirError := os.ReadDir(dir)
+
+    if readDirError!= nil {
+        return 0, readDirError
+    }
+
+	var rs []string
+
+	for _, file := range files {
+        if strings.Contains(file.Name(), ".zip") {
+            rs = append(rs, file.Name())
+        }
+    }
+
+    return len(files), nil
+}
+
+func (l *FileLogger) GetLatestArchiveFileName(dir string) (string, error) {
+	archiveCnt, archiveCountError := l.GetArchiveCount(dir)
+	fmt.Println(strconv.Itoa(archiveCnt))
+	if archiveCountError!= nil {
+        return "", archiveCountError
+    }
+
+	return fmt.Sprintf("archive_%v.zip", archiveCnt + 1), nil
+}
+
+func (l *FileLogger) getRootDirError() error {
+	if l.DirPath == "" {
+		return errors.New("x> ")
+	}
+
+	return nil
+}
+
+/* Init */
 
 func (l *FileLogger) InitLogDir() error {
 
