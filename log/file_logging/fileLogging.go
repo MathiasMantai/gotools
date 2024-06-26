@@ -57,14 +57,16 @@ func (l *FileLogger) LogRotate() bool {
 func (l *FileLogger) InitLogDir() error {
 
 	if l.DirPath == "" {
-		return errors.New("logging directory has not been specified")
+		return errors.New("x> Log directory path has not been specified")
+	}
+
+	if _, fileExistsError := os.Stat(l.DirPath); !os.IsNotExist(fileExistsError) {
+		return errors.New("x> Log Directory already exists")
 	}
 
 	createDirError := os.Mkdir(l.DirPath, 0755)
 	if createDirError != nil {
-		fmt.Println("=> Directory exists already. Skipping...")
-	} else {
-		fmt.Println("=> Log Directory created...")
+		return errors.New("x> Log Directory could not be created")
 	}
 
 	return nil
