@@ -1,4 +1,4 @@
-package db
+package webrouter
 
 import (
 	"github.com/MathiasMantai/gotools/db"

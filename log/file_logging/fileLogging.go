@@ -243,7 +243,6 @@ func NewFileLogger() *FileLogger {
 	return &logger
 }
 
-
 /* Util */
 func (l *FileLogger) FormatFileLogMsg(msg string) (string, error) {
 	
