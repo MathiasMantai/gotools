@@ -3,50 +3,56 @@ package webrouter
 import (
 	"github.com/MathiasMantai/gotools/db"
 	"net/http"
+	"fmt"
 )
 
 type Dbs interface {
 	*db.MssqlDb | *db.SqliteDb | *db.PgSqlDb
 }
 
-type WebRouter[T Dbs] struct {
+type WebRouterWithDb[T Dbs] struct {
 	LastRoute      string
 	DbContainer    map[string](T)
 	RouteContainer map[string]interface{}
 }
 
-func (wr *WebRouter[T]) InitRouteContainer() {
+func (wr *WebRouterWithDb[T]) InitRouteContainer() {
 	wr.RouteContainer = make(map[string]interface{})
 }
 
-func (wr *WebRouter[T]) InitDbContainer() {
+func (wr *WebRouterWithDb[T]) InitDbContainer() {
 	wr.DbContainer = make(map[string](T))
 }
 
-func (wr *WebRouter[T]) Init() {
+func (wr *WebRouterWithDb[T]) Init() {
 	wr.InitRouteContainer()
 	wr.InitDbContainer()
 }
 
-func (wr *WebRouter[T]) RegisterDb(label string, db T) {
+func (wr *WebRouterWithDb[T]) RegisterDb(label string, db T) {
 	wr.DbContainer[label] = db
 }
 
-func (wr *WebRouter[T]) GetDb(label string) T {
+func (wr *WebRouterWithDb[T]) GetDb(label string) T {
 	return wr.DbContainer[label]
 }
 
-func (wr *WebRouter[T]) RegisterRoute(label string, routeFunc interface{}) {
+func (wr *WebRouterWithDb[T]) RegisterRoute(label string, routeFunc interface{}) {
 	wr.RouteContainer[label] = routeFunc
 }
 
-func (wr *WebRouter[T]) HandleByMux(mux *http.ServeMux) {
+func (wr *WebRouterWithDb[T]) HandleByMux(mux *http.ServeMux) {
 	for label, routeFunc := range wr.RouteContainer {
 		//convert and handle by mux
+		fmt.Println("Route: " + label)
 		mux.HandleFunc(label, routeFunc.(func(http.ResponseWriter, *http.Request)))
 	}
 }
 
-func CreateWebRouter[T Dbs]() *WebRouter[T] {
-	return new(WebRouter[T])
+func CreateWebRouterWithDb[T Dbs]() *WebRouterWithDb[T] {
+	var wr = &WebRouterWithDb[T] {
+		DbContainer: make(map[string](T)),
+		RouteContainer: make(map[string]interface{}),
+	}
+	return wr
 }
