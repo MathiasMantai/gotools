@@ -41,6 +41,12 @@ func (wr *WebRouterWithDb[T]) RegisterRoute(label string, routeFunc interface{})
 	wr.RouteContainer[label] = routeFunc
 }
 
+func (wr *WebRouterWithDb[T]) RegisterRouteMap(routeFuncs map[string]interface{}) {
+	for label, routeFunc := range routeFuncs {
+        wr.RegisterRoute(label, routeFunc)
+    }
+}
+
 func (wr *WebRouterWithDb[T]) HandleByMux(mux *http.ServeMux) {
 	for label, routeFunc := range wr.RouteContainer {
 		//convert and handle by mux
