@@ -1,12 +1,14 @@
 package db
 
 import (
+	"strings"
 	"context"
 	"database/sql"
 	"fmt"
-	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/jackc/pgx/v5"
+	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"os"
 	"path/filepath"
@@ -158,4 +160,45 @@ func (pg *PgSqlDb) MakeMigrations(migrationPath string) error {
 	tx.Commit(context.Background())
 
 	return nil
+}
+
+
+/* MySQL */
+
+
+
+type MySqlDb struct {
+	DbObj    *sql.DB
+	ConnData DbConnData
+}
+
+
+func ConnectMySqlDb(server string, port string, database string, user string, pw string, protocol string) (*MySqlDb, error) {
+	var (
+		cdb MySqlDb
+		connectionString string
+	)
+	cdb.ConnData = DbConnData{
+		Server:   server,
+		Port:     port,
+		Database: database,
+		User:     user,
+		Pw:       pw,
+	}
+		
+	if strings.TrimSpace(protocol) == "" {
+		connectionString = fmt.Sprintf("%s:%s@%s/%s", user, pw, server, database)
+	} else {
+		connectionString = fmt.Sprintf("%s:%s@%s(%s)/%s", user, pw, protocol, server, database)
+	}
+	fmt.Println(connectionString)
+	conn, connError := sql.Open("mysql", connectionString)
+	if connError!= nil {
+        return nil, connError
+    }
+
+
+	cdb.DbObj = conn
+
+	return &cdb, nil
 }
