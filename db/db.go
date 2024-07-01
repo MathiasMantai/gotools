@@ -50,7 +50,7 @@ func (s *SqliteDb) Migrate(migrationDir string) error {
 	}
 
 	for _, fileName := range dir {
-		file, err := os.ReadFile(fileName.Name())
+		file, err := os.ReadFile(filepath.Join(migrationDir, fileName.Name()))
 		if err != nil {
 			return err
 		}
@@ -165,8 +165,6 @@ func (pg *PgSqlDb) MakeMigrations(migrationPath string) error {
 
 /* MySQL */
 
-
-
 type MySqlDb struct {
 	DbObj    *sql.DB
 	ConnData DbConnData
@@ -197,8 +195,6 @@ func ConnectMySqlDb(server string, port string, database string, user string, pw
         return nil, connError
     }
 
-
 	cdb.DbObj = conn
-
 	return &cdb, nil
 }
