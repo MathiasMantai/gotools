@@ -1,3 +1,5 @@
 main.go
 testlog
 *.zip
+*.db
+migrations
