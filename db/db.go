@@ -130,6 +130,41 @@ func ConnectMssql(server string, port string, database string, user string, pw s
 	return &db, nil
 }
 
+func (ms *MssqlDb) MakeMigrations(migrationPath string) error {
+
+	sqlFiles, readDirError := os.ReadDir(migrationPath)
+	if readDirError != nil {
+		fmt.Println("Error reading dir")
+		return readDirError
+	}
+
+	tx, txError := ms.DbObj.Begin()
+	if txError != nil {
+		return txError
+	}
+
+	for _, sqlFile := range sqlFiles {
+		fmt.Printf("=> executing migration %s\n", sqlFile.Name())
+		queryFilePath := filepath.Join(migrationPath, sqlFile.Name())
+		query, readFileError := os.ReadFile(queryFilePath)
+		if readFileError != nil {
+			return readFileError
+		}
+
+		_, queryError := ms.DbObj.Exec(string(query))
+		if queryError != nil {
+			tx.Rollback()
+			return queryError
+		}
+
+		fmt.Printf("=> migration %s executed successfully\n", RemoveFileExtension(sqlFile.Name()))
+	}
+	tx.Commit()
+
+	return nil
+}
+
+
 /* POSTGRES */
 type PgSqlDb struct {
 	DbObj    *pgx.Conn
