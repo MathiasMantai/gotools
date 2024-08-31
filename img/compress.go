@@ -1,16 +1,16 @@
 package img
 
 import (
+	"errors"
 	"fmt"
+	"golang.org/x/image/draw"
+	"image"
+	"image/png"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
-	"image"
-	"image/png"
-	"math"
-	"golang.org/x/image/draw"
-	"errors"
 )
 
 //walk dir and compress all files recursively
@@ -18,8 +18,8 @@ func WalkDirAndCompressFiles(dirPath string, fileExtensions []string, fileExtens
 	var errorContainer []error
 	filepath.WalkDir(dirPath, func(path string, fileInfo fs.DirEntry, walkFuncError error) error {
 		if walkFuncError != nil {
-            return walkFuncError
-        }
+			return walkFuncError
+		}
 		fileName := fileInfo.Name()
 
 		if !fileInfo.IsDir() && FileHasAnyFileExtension(fileName, fileExtensions) && !FileHasAnyFileExtension(fileName, fileExtensionsNotAllowed) {
@@ -53,9 +53,9 @@ func CompressPng(filePath string, dimensionMax int) error {
 	fmt.Println("=> Attempting to compress png file: " + filePath)
 
 	file, openFileError := os.Open(filePath)
-	if openFileError!= nil {
-        return fmt.Errorf("error opening png file: %v", openFileError)
-    }
+	if openFileError != nil {
+		return fmt.Errorf("error opening png file: %v", openFileError)
+	}
 
 	newImage, _, decodeToImageError := image.Decode(file)
 	if decodeToImageError != nil {
@@ -70,9 +70,9 @@ func CompressPng(filePath string, dimensionMax int) error {
 	if bounds.Dx() > dimensionMax || bounds.Dy() > dimensionMax {
 		//get scaled with and height for image
 		scaleFactor := float64(dimensionMax) / math.Max(float64(bounds.Dx()), float64(bounds.Dy()))
-		width  = int(float64(bounds.Dx()) * scaleFactor)
+		width = int(float64(bounds.Dx()) * scaleFactor)
 		height = int(float64(bounds.Dy()) * scaleFactor)
-	
+
 		if width > 0 && height > 0 {
 			newImageRGBA := image.NewRGBA(image.Rect(0, 0, width, height))
 
@@ -92,7 +92,7 @@ func CompressPng(filePath string, dimensionMax int) error {
 
 			encodePngError := encoder.Encode(newFile, newImageRGBA)
 
-			if encodePngError!= nil {
+			if encodePngError != nil {
 				return encodePngError
 			}
 		} else {

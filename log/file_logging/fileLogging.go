@@ -11,19 +11,18 @@ import (
 	// "time"
 	"io"
 	"strconv"
-
 )
 
 type FileLogger struct {
-	TimeZone   string
-	TimeLayout string
-	BeforeTime string
-	AfterTime  string
-	KeepOldest int
-	DirPath    string
-	LogFilePrefix  string
-	LogMessagePrefix string
-	UseTimestamp bool
+	TimeZone          string
+	TimeLayout        string
+	BeforeTime        string
+	AfterTime         string
+	KeepOldest        int
+	DirPath           string
+	LogFilePrefix     string
+	LogMessagePrefix  string
+	UseTimestamp      bool
 	LatestLogFileName string
 }
 
@@ -45,7 +44,6 @@ func (l *FileLogger) SetKeepOldest(value int) {
 	l.KeepOldest = value
 }
 
-
 /* Getter */
 
 /* Log file Rotation */
@@ -60,16 +58,16 @@ func (l *FileLogger) LogRotate() error {
 
 	if logCnt > int(l.KeepOldest) {
 		archiveName, getArchiveNameError := l.GetLatestArchiveFileName(l.DirPath)
-		if getArchiveNameError!= nil {
-            return fmt.Errorf("x> error while getting archive name: %v", getArchiveNameError)
-        }
+		if getArchiveNameError != nil {
+			return fmt.Errorf("x> error while getting archive name: %v", getArchiveNameError)
+		}
 
 		if strings.TrimSpace(archiveName) == "" {
 			return errors.New("x> archive name is empty")
 		}
 
-		archive, err:=os.Create(archiveName)
-		if err!=nil{
+		archive, err := os.Create(archiveName)
+		if err != nil {
 			return err
 		}
 
@@ -82,20 +80,20 @@ func (l *FileLogger) LogRotate() error {
 			defer zipWriter.Close()
 
 			logFile, logFileOpenError := os.Open(logFilePath)
-			if logFileOpenError!= nil {
-                return logFileOpenError
-            }
+			if logFileOpenError != nil {
+				return logFileOpenError
+			}
 			defer logFile.Close()
 
 			writer, createWriterError := zipWriter.Create(file)
-			if createWriterError!= nil {
-                return createWriterError
-            }
-			
+			if createWriterError != nil {
+				return createWriterError
+			}
+
 			_, copyError := io.Copy(writer, logFile)
-			if copyError!= nil {
-                return copyError
-            }
+			if copyError != nil {
+				return copyError
+			}
 
 			//remove file
 			deleteFileError := os.Remove(logFilePath)
@@ -111,9 +109,9 @@ func (l *FileLogger) LogRotate() error {
 func (l *FileLogger) GetLogFilesNamesInDir(dir string) ([]string, error) {
 	files, readDirError := os.ReadDir(dir)
 
-    if readDirError!= nil {
-        return nil, readDirError
-    }
+	if readDirError != nil {
+		return nil, readDirError
+	}
 
 	var rs []string
 
@@ -124,35 +122,35 @@ func (l *FileLogger) GetLogFilesNamesInDir(dir string) ([]string, error) {
 		}
 	}
 
-    return rs, nil
+	return rs, nil
 }
 
 func (l *FileLogger) GetArchiveCount(dir string) (int, error) {
 	files, readDirError := os.ReadDir(dir)
 
-    if readDirError!= nil {
-        return 0, readDirError
-    }
+	if readDirError != nil {
+		return 0, readDirError
+	}
 
 	var rs []string
 
 	for _, file := range files {
-        if strings.Contains(file.Name(), ".zip") {
-            rs = append(rs, file.Name())
-        }
-    }
+		if strings.Contains(file.Name(), ".zip") {
+			rs = append(rs, file.Name())
+		}
+	}
 
-    return len(files), nil
+	return len(files), nil
 }
 
 func (l *FileLogger) GetLatestArchiveFileName(dir string) (string, error) {
 	archiveCnt, archiveCountError := l.GetArchiveCount(dir)
 	fmt.Println(strconv.Itoa(archiveCnt))
-	if archiveCountError!= nil {
-        return "", archiveCountError
-    }
+	if archiveCountError != nil {
+		return "", archiveCountError
+	}
 
-	return fmt.Sprintf("archive_%v.zip", archiveCnt + 1), nil
+	return fmt.Sprintf("archive_%v.zip", archiveCnt+1), nil
 }
 
 func (l *FileLogger) getRootDirError() error {
@@ -185,7 +183,7 @@ func (l *FileLogger) InitLogDir() error {
 
 func (l *FileLogger) InitLogFile() error {
 	logFileName, logFileNameError := GetLogFileName(l.LogFilePrefix, l.TimeLayout, l.TimeZone)
-	
+
 	if logFileNameError != nil {
 		return fmt.Errorf("x> Log file name could not be generated: %s", logFileNameError.Error())
 	}
@@ -199,8 +197,8 @@ func (l *FileLogger) InitLogFile() error {
 	}
 
 	if _, fileExistsError := os.Stat(filepath.Join(l.DirPath, logFileName)); !os.IsNotExist(fileExistsError) {
-        return errors.New("x> Log file already exists")
-    }
+		return errors.New("x> Log file already exists")
+	}
 
 	if _, createFileError := os.Create(filepath.Join(l.DirPath, logFileName)); createFileError != nil {
 		return fmt.Errorf("x> Log file could not be created: %v", createFileError)
@@ -211,9 +209,9 @@ func (l *FileLogger) InitLogFile() error {
 
 func (l *FileLogger) LogMsg(msg string) error {
 	formattedMsg, formatError := l.FormatFileLogMsg(msg)
-	if formatError!= nil {
-        return fmt.Errorf("x> error formatting message: %v", formatError)
-    }
+	if formatError != nil {
+		return fmt.Errorf("x> error formatting message: %v", formatError)
+	}
 	encodedMsg := []byte(formattedMsg)
 	logFileName, logFileNameError := GetLogFileName(l.LogFilePrefix, l.TimeLayout, l.TimeZone)
 	if logFileNameError != nil {
@@ -221,11 +219,11 @@ func (l *FileLogger) LogMsg(msg string) error {
 	}
 
 	logFilePath := filepath.Join(l.DirPath, logFileName)
-	
+
 	file, openFileError := os.OpenFile(logFilePath, os.O_APPEND, 0644)
-	if openFileError!= nil {
-        return fmt.Errorf("x> Error opening log file: %s", openFileError.Error())
-    }
+	if openFileError != nil {
+		return fmt.Errorf("x> Error opening log file: %s", openFileError.Error())
+	}
 	defer file.Close()
 
 	_, writeFileError := file.Write(encodedMsg)
@@ -245,7 +243,7 @@ func NewFileLogger() *FileLogger {
 
 /* Util */
 func (l *FileLogger) FormatFileLogMsg(msg string) (string, error) {
-	
+
 	if strings.TrimSpace(l.TimeLayout) != "" && strings.TrimSpace(l.TimeZone) != "" {
 		timestamp, timestampError := GetCurrentTime(l.TimeZone, l.TimeLayout)
 
@@ -254,7 +252,7 @@ func (l *FileLogger) FormatFileLogMsg(msg string) (string, error) {
 		}
 
 		//add a timestamp
-		if l.UseTimestamp  {
+		if l.UseTimestamp {
 			msg = fmt.Sprintf("[%s] - %s", timestamp, msg)
 		}
 	} else {

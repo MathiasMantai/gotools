@@ -1,18 +1,18 @@
 package db
 
 import (
-	"strings"
 	"context"
 	"database/sql"
+	"embed"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	_ "github.com/denisenkom/go-mssqldb"
-	_ "github.com/mattn/go-sqlite3"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5"
+	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
 	"path/filepath"
-	"embed"
+	"strings"
 )
 
 type DbConnData struct {
@@ -65,8 +65,6 @@ func (s *SqliteDb) Migrate(migrationDir string) error {
 	return nil
 }
 
-
-
 // run migration from an embedded directory
 //reads every migrationfile separately and executes all qureries
 func (s *SqliteDb) MigrateEmbedded(migrationDir embed.FS, dirName string) error {
@@ -95,9 +93,6 @@ func (s *SqliteDb) MigrateEmbedded(migrationDir embed.FS, dirName string) error 
 
 	return nil
 }
-
-
-
 
 /* MSSQL */
 
@@ -163,7 +158,6 @@ func (ms *MssqlDb) MakeMigrations(migrationPath string) error {
 
 	return nil
 }
-
 
 /* POSTGRES */
 type PgSqlDb struct {
@@ -232,7 +226,6 @@ func (pg *PgSqlDb) MakeMigrations(migrationPath string) error {
 	return nil
 }
 
-
 /* MySQL */
 
 type MySqlDb struct {
@@ -240,10 +233,9 @@ type MySqlDb struct {
 	ConnData DbConnData
 }
 
-
 func ConnectMySqlDb(server string, port string, database string, user string, pw string, protocol string) (*MySqlDb, error) {
 	var (
-		cdb MySqlDb
+		cdb              MySqlDb
 		connectionString string
 	)
 	cdb.ConnData = DbConnData{
@@ -253,7 +245,7 @@ func ConnectMySqlDb(server string, port string, database string, user string, pw
 		User:     user,
 		Pw:       pw,
 	}
-		
+
 	if strings.TrimSpace(protocol) == "" {
 		connectionString = fmt.Sprintf("%s:%s@%s/%s", user, pw, server, database)
 	} else {
@@ -261,9 +253,9 @@ func ConnectMySqlDb(server string, port string, database string, user string, pw
 	}
 	fmt.Println(connectionString)
 	conn, connError := sql.Open("mysql", connectionString)
-	if connError!= nil {
-        return nil, connError
-    }
+	if connError != nil {
+		return nil, connError
+	}
 
 	cdb.DbObj = conn
 	return &cdb, nil
