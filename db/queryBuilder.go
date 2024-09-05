@@ -5,9 +5,8 @@ import (
 	"strings"
 )
 
-
 type QueryBuilder struct {
-	Type string
+	Type  string
 	Query string
 }
 
@@ -19,34 +18,34 @@ func (q *QueryBuilder) Get() string {
 	return strings.TrimSpace(q.Query)
 }
 
-/* SELECT */ 
+/* SELECT */
 func (q *QueryBuilder) SelectOne(selectOptions string) *QueryBuilder {
 	q.Query += fmt.Sprintf("SELECT %s", selectOptions)
-    return q
+	return q
 }
 
 func (q *QueryBuilder) SelectMany(selectOptions []string) *QueryBuilder {
 	q.Query += "SELECT "
 	for i, selectOption := range selectOptions {
-        q.Query += selectOption
+		q.Query += selectOption
 
 		if i < len(selectOptions)-1 {
-            q.Query += ", "
-        }
-    }
-    return q
+			q.Query += ", "
+		}
+	}
+	return q
 }
 
 func (q *QueryBuilder) SelectAll() *QueryBuilder {
 	q.Query += "SELECT * "
-    return q
+	return q
 }
 
 /* FROM */
 
 func (q *QueryBuilder) From(table string) *QueryBuilder {
-    q.Query += fmt.Sprintf("FROM %s ", table)
-    return q
+	q.Query += fmt.Sprintf("FROM %s ", table)
+	return q
 }
 
 /* WHERE */

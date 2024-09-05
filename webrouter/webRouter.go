@@ -1,6 +1,7 @@
 package webrouter
 
 import (
+	"fmt"
 	"github.com/MathiasMantai/gotools/db"
 	"net/http"
 )
@@ -42,8 +43,8 @@ func (wr *WebRouterWithDb[T]) RegisterRoute(label string, routeFunc interface{})
 
 func (wr *WebRouterWithDb[T]) RegisterRouteMap(routeFuncs map[string]interface{}) {
 	for label, routeFunc := range routeFuncs {
-        wr.RegisterRoute(label, routeFunc)
-    }
+		wr.RegisterRoute(label, routeFunc)
+	}
 }
 
 func (wr *WebRouterWithDb[T]) HandleByMux(mux *http.ServeMux) {
@@ -55,8 +56,8 @@ func (wr *WebRouterWithDb[T]) HandleByMux(mux *http.ServeMux) {
 }
 
 func CreateWebRouterWithDb[T Dbs]() *WebRouterWithDb[T] {
-	var wr = &WebRouterWithDb[T] {
-		DbContainer: make(map[string](T)),
+	var wr = &WebRouterWithDb[T]{
+		DbContainer:    make(map[string](T)),
 		RouteContainer: make(map[string]interface{}),
 	}
 	return wr
