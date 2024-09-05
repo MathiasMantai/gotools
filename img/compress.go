@@ -49,6 +49,8 @@ func FileHasAnyFileExtension(fileName string, fileExtensions []string) bool {
 	return false
 }
 
+//compress a png file and resize to a 
+//maxmimum dimensional unit if either width or height is greater
 func CompressPng(filePath string, dimensionMax int) error {
 	fmt.Println("=> Attempting to compress png file: " + filePath)
 

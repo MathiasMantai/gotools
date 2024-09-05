@@ -3,7 +3,6 @@ package webrouter
 import (
 	"github.com/MathiasMantai/gotools/db"
 	"net/http"
-	"fmt"
 )
 
 type Dbs interface {
@@ -50,7 +49,7 @@ func (wr *WebRouterWithDb[T]) RegisterRouteMap(routeFuncs map[string]interface{}
 func (wr *WebRouterWithDb[T]) HandleByMux(mux *http.ServeMux) {
 	for label, routeFunc := range wr.RouteContainer {
 		//convert and handle by mux
-		fmt.Println("Route: " + label)
+		// fmt.Println("Route: " + label)
 		mux.HandleFunc(label, routeFunc.(func(http.ResponseWriter, *http.Request)))
 	}
 }
@@ -61,4 +60,18 @@ func CreateWebRouterWithDb[T Dbs]() *WebRouterWithDb[T] {
 		RouteContainer: make(map[string]interface{}),
 	}
 	return wr
+}
+
+/* WebRouter no db */
+
+type WebRouter struct {
+	LastRoute string `json:"last_route"`
+	RouteContainer map[string]interface{} `json:"route_container"`
+}
+
+func CreateWebRouter() *WebRouter {
+	return &WebRouter{
+		RouteContainer: make(map[string]interface{}),
+		LastRoute: "/",
+	}
 }
