@@ -1,7 +1,6 @@
 package webrouter
 
 import (
-	"fmt"
 	"github.com/MathiasMantai/gotools/db"
 	"net/http"
 )
