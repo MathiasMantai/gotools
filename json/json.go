@@ -9,14 +9,13 @@ func IntoStruct(filePath string, target interface{}) error {
 	data, readFileError := os.ReadFile(filePath)
 
 	if readFileError != nil {
-        return readFileError
-    }
+		return readFileError
+	}
 
 	unmarshalError := json.Unmarshal(data, target)
-	if unmarshalError!= nil {
-        return unmarshalError
-    }	
+	if unmarshalError != nil {
+		return unmarshalError
+	}
 
 	return nil
 }
-

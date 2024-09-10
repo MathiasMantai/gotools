@@ -1,8 +1,8 @@
 package datastructures
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 )
 
 func TestStringToInterfaceSlice(t *testing.T) {

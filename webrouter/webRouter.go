@@ -65,13 +65,13 @@ func CreateWebRouterWithDb[T Dbs]() *WebRouterWithDb[T] {
 /* WebRouter no db */
 
 type WebRouter struct {
-	LastRoute string `json:"last_route"`
+	LastRoute      string                 `json:"last_route"`
 	RouteContainer map[string]interface{} `json:"route_container"`
 }
 
 func CreateWebRouter() *WebRouter {
 	return &WebRouter{
 		RouteContainer: make(map[string]interface{}),
-		LastRoute: "/",
+		LastRoute:      "/",
 	}
 }

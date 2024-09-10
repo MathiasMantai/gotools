@@ -1,7 +1,9 @@
 package db
 
 import (
+	"errors"
 	"fmt"
+	"github.com/MathiasMantai/gotools/datastructures"
 	"strings"
 )
 
@@ -10,10 +12,24 @@ type QueryBuilder struct {
 	Query string
 }
 
-func NewQueryBuilder(queryBuilderType string) *QueryBuilder {
-	return &QueryBuilder{Type: queryBuilderType}
+var supportedTypes = []string{
+	"mysql",
+	"mssql",
+	"sqlite",
+	"sqlite3",
+	"postgres",
 }
 
+func NewQueryBuilder(queryBuilderType string) (*QueryBuilder, error) {
+
+	if !datastructures.IsValueInSlice(queryBuilderType, datastructures.StringToInterfaceSlice(supportedTypes)) {
+		return nil, errors.New("specified type not supported")
+	}
+
+	return &QueryBuilder{Type: queryBuilderType}, nil
+}
+
+//Get will return the finished query as a string
 func (q *QueryBuilder) Get() string {
 	return strings.TrimSpace(q.Query)
 }

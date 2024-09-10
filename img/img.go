@@ -1,27 +1,27 @@
 package img
 
 import (
-	"os"
 	"fmt"
 	"image"
-	"strings"
-	"image/png"
 	"image/jpeg"
+	"image/png"
+	"os"
+	"strings"
 )
 
 func LoadPng(filePath string) (*image.Image, error) {
 	imgFile, openError := os.Open(filePath)
-    if openError!= nil {
-        return nil, openError
-    }
-    defer imgFile.Close()
+	if openError != nil {
+		return nil, openError
+	}
+	defer imgFile.Close()
 
-    img, decodeError := png.Decode(imgFile)
-    if decodeError!= nil {
-        return nil, decodeError
-    }
+	img, decodeError := png.Decode(imgFile)
+	if decodeError != nil {
+		return nil, decodeError
+	}
 
-    return &img, nil
+	return &img, nil
 }
 
 func LoadJpeg(filePath string) (*image.Image, error) {
@@ -31,16 +31,15 @@ func LoadJpeg(filePath string) (*image.Image, error) {
 	}
 
 	imgFile, openError := os.Open(filePath)
-    if openError != nil {
-        return nil, openError
-    }
-    defer imgFile.Close()
+	if openError != nil {
+		return nil, openError
+	}
+	defer imgFile.Close()
 
-    img, decodeError := jpeg.Decode(imgFile)
-    if decodeError != nil {
-        return nil, decodeError
-    }
+	img, decodeError := jpeg.Decode(imgFile)
+	if decodeError != nil {
+		return nil, decodeError
+	}
 
-    return &img, nil
+	return &img, nil
 }
-
