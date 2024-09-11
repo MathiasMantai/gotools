@@ -142,18 +142,8 @@ func (t *Table) PrintWithHeader(tableData [][]string, headerColor string, whiteS
     t.GetMaxStringLengthPerColumn()
     t.getTopAndBottomWidth()
 	t.printHeader(headerColor)
-	t.Data = datastructures.InterfaceToTwoDStringSlice(datastructures.RemoveSliceValue(0, datastructures.TwoDStringToInterfaceSlice(t.Data)))
+	t.Data = datastructures.InterfaceToTwoDStringSlice(datastructures.RemoveSliceValueTwoD(0, datastructures.TwoDStringToInterfaceSlice(t.Data)))
 
     t.printTable()
     return nil
 }
-
-// -------------
-// | a | b | c |
-// -------------
-// | d | e | f |
-// -------------
-// | d | e | f |
-// -------------
-// | d | e | f |
-// -------------

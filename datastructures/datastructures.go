@@ -45,7 +45,7 @@ func GetIntSliceSum(values []int) int {
 }
 
 func RemoveSliceValueTwoD(value int, slice [][]interface{}) [][]interface{} {
-	for i, _ := range slice {
+	for i := range slice {
         if i == value {
             slice = append(slice[:i], slice[i+1:]...)
             break
