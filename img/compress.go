@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-//walk dir and compress all files recursively
+// walk dir and compress all files recursively
 func WalkDirAndCompressFiles(dirPath string, fileExtensions []string, fileExtensionsNotAllowed []string, dimensionMax int) []error {
 	var errorContainer []error
 	filepath.WalkDir(dirPath, func(path string, fileInfo fs.DirEntry, walkFuncError error) error {
@@ -38,7 +38,7 @@ func WalkDirAndCompressFiles(dirPath string, fileExtensions []string, fileExtens
 	return errorContainer
 }
 
-//checks whether a filename contains one of a list of file extensions
+// checks whether a filename contains one of a list of file extensions
 func FileHasAnyFileExtension(fileName string, fileExtensions []string) bool {
 	for _, fileExtension := range fileExtensions {
 		if strings.Contains(fileName, fileExtension) {
@@ -49,8 +49,8 @@ func FileHasAnyFileExtension(fileName string, fileExtensions []string) bool {
 	return false
 }
 
-//compress a png file and resize to a
-//maxmimum dimensional unit if either width or height is greater
+// compress a png file and resize to a
+// maxmimum dimensional unit if either width or height is greater
 func CompressPng(filePath string, dimensionMax int) error {
 	fmt.Println("=> Attempting to compress png file: " + filePath)
 

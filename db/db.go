@@ -66,7 +66,7 @@ func (s *SqliteDb) Migrate(migrationDir string) error {
 }
 
 // run migration from an embedded directory
-//reads every migrationfile separately and executes all qureries
+// reads every migrationfile separately and executes all qureries
 func (s *SqliteDb) MigrateEmbedded(migrationDir embed.FS, dirName string) error {
 	fmt.Println("=> Running migrations...")
 	dir, readDirError := migrationDir.ReadDir("migrations")

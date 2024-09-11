@@ -29,7 +29,7 @@ func NewQueryBuilder(queryBuilderType string) (*QueryBuilder, error) {
 	return &QueryBuilder{Type: queryBuilderType}, nil
 }
 
-//Get will return the finished query as a string
+// Get will return the finished query as a string
 func (q *QueryBuilder) Get() string {
 	return strings.TrimSpace(q.Query)
 }
