@@ -1,9 +1,10 @@
-package cli
+package table
 
 import (
 	"fmt"
 	"errors"
 	"github.com/MathiasMantai/gotools/datastructures"
+	"github.com/MathiasMantai/gotools/cli"
 )
 
 type Table struct {
@@ -13,7 +14,7 @@ type Table struct {
 	WhiteSpace int
 }
 
-func (t *Table) ValidateTable() error {
+func (t *Table) validateTable() error {
 	
 	if len(t.Data) == 0 {
         return errors.New("table is empty")
@@ -30,7 +31,7 @@ func (t *Table) ValidateTable() error {
 	return nil
 }
 
-func (t *Table) GetMaxStringLengthPerColumn() {
+func (t *Table) getMaxStringLengthPerColumn() {
 	tableColumnLength := make([]int, len(t.Data[0]))
 	for _, row := range t.Data {
 		for j, column := range row {
@@ -109,7 +110,7 @@ func (t *Table) getHeaderRow(color string) string {
 		widthCurrentValue := len(value)
 		maxWidthDifference := maxWidthForColumn - widthCurrentValue
 
-		rs += getWhiteSpace(t.WhiteSpace + maxWidthDifference) + GetBoldAndColor(value, color, false) + getWhiteSpace(t.WhiteSpace) + "|"
+		rs += getWhiteSpace(t.WhiteSpace + maxWidthDifference) + cli.GetBoldAndColor(value, color, false) + getWhiteSpace(t.WhiteSpace) + "|"
 	}
 	rs += "\n"
 	return rs
@@ -121,11 +122,11 @@ func (t *Table) Print(tableData [][]string, whiteSpace int) error {
 	t.Data = tableData
 	t.WhiteSpace = whiteSpace
 	
-	if tableError := t.ValidateTable(); tableError != nil {
+	if tableError := t.validateTable(); tableError != nil {
 		return tableError
 	}
 
-	t.GetMaxStringLengthPerColumn()
+	t.getMaxStringLengthPerColumn()
 	t.getTopAndBottomWidth()
 	t.printTable()
 	return nil
@@ -135,11 +136,11 @@ func (t *Table) PrintWithHeader(tableData [][]string, headerColor string, whiteS
 	t.Data = append([][]string{tableData[0]}, tableData[1:]...)
     t.WhiteSpace = whiteSpace
 
-    if tableError := t.ValidateTable(); tableError!= nil {
+    if tableError := t.validateTable(); tableError!= nil {
         return tableError
     }
 
-    t.GetMaxStringLengthPerColumn()
+    t.getMaxStringLengthPerColumn()
     t.getTopAndBottomWidth()
 	t.printHeader(headerColor)
 	t.Data = datastructures.InterfaceToTwoDStringSlice(datastructures.RemoveSliceValueTwoD(0, datastructures.TwoDStringToInterfaceSlice(t.Data)))
