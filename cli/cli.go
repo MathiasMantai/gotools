@@ -10,7 +10,9 @@ const (
 	Bold  = "\033[1m"
 )
 
+// map of color ansii codes
 var colors = map[string]string{
+	"black":  "\033[30m",
 	"red":    "\033[31m",
 	"green":  "\033[32m",
 	"yellow": "\033[33m",
@@ -32,6 +34,7 @@ func PrintColor(text string, color string, newLine bool) {
 	fmt.Printf("%s%s%s%s", colors[color], text, Reset, newLineString)
 }
 
+// print a text as bold
 func PrintBold(text string, newLine bool) {
 	newLineString := ""
 
@@ -41,6 +44,7 @@ func PrintBold(text string, newLine bool) {
 	fmt.Printf("%s%s%s%s", Bold, text, Reset, newLineString)
 }
 
+// print a text as bold and colored
 func PrintBoldAndColor(text string, color string, newLine bool) {
 	color = strings.ToLower(color)
 	newLineString := ""
@@ -51,6 +55,7 @@ func PrintBoldAndColor(text string, color string, newLine bool) {
 	fmt.Printf("%s%s%s%s%s", colors[color], Bold, text, Reset, newLineString)
 }
 
+// returns a text colored and bold
 func GetBoldAndColor(text string, color string, newLine bool) string {
 	color = strings.ToLower(color)
 	newLineString := ""
