@@ -52,3 +52,36 @@ func main() {
 ```
 
 
+## PrintWithTime
+Prints the current time (based on the system time) in frontn of a string
+
+### Example
+
+```go
+
+import (
+    "github.com/MathiasMantai/gotools/cli"
+)
+
+func main() {
+    cli.PrintWithTime("This is the current time", true)
+}
+```
+
+
+
+## PrintWithTimeAndColor
+Prints the current time (based on the system time) in front of a colored string
+
+### Example
+
+```go
+
+import (
+    "github.com/MathiasMantai/gotools/cli"
+)
+
+func main() {
+    cli.PrintWithTimeAndColor("This should be colored blue", "blue", true)
+}
+```
