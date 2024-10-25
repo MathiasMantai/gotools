@@ -208,6 +208,14 @@ func (l *FileLogger) InitLogFile() error {
 }
 
 func (l *FileLogger) LogMsg(msg string) error {
+
+	//first check if logfile exists and create if not
+	validateLogFileError := l.ValidateLogFile()
+
+	if validateLogFileError!= nil {
+        return fmt.Errorf("x> error validating log file: %v", validateLogFileError)
+    }
+
 	formattedMsg, formatError := l.FormatFileLogMsg(msg)
 	if formatError != nil {
 		return fmt.Errorf("x> error formatting message: %v", formatError)
@@ -229,6 +237,28 @@ func (l *FileLogger) LogMsg(msg string) error {
 	_, writeFileError := file.Write(encodedMsg)
 	if writeFileError != nil {
 		return fmt.Errorf("x> Error writing to log file: %s", writeFileError.Error())
+	}
+
+	return nil
+}
+
+
+//check if a log file exists for today and create one if it does not
+func (l *FileLogger) ValidateLogFile() error {
+	
+	//check if logfile exists
+	logFileName, logFileNameError := GetLogFileName(l.LogFilePrefix, l.TimeLayout, l.TimeZone)
+
+	if logFileNameError != nil {
+		return logFileNameError
+	}
+
+	if _, fileExistsError := os.Stat(filepath.Join(l.DirPath, logFileName)); os.IsNotExist(fileExistsError) {
+		//create Log file
+		initLogFileError := l.InitLogFile()
+		if initLogFileError!= nil {
+            return initLogFileError
+        }
 	}
 
 	return nil
