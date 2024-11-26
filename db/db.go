@@ -9,11 +9,15 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/MathiasMantai/gotools/cli"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+
+
 
 type DbConnData struct {
 	Server   string
@@ -259,4 +263,41 @@ func ConnectMySqlDb(server string, port string, database string, user string, pw
 
 	cdb.DbObj = conn
 	return &cdb, nil
+}
+
+func (my *MySqlDb) MakeMigrations(migrationPath string) error {
+	cli.PrintColor("=> Attempting to migrate database tables...", "blue", true)
+	sqlFiles, readDirError := os.ReadDir(migrationPath)
+	if readDirError != nil {
+		cli.PrintColor("Error reading dir", "red", true)
+		return readDirError
+	}
+
+	tx, txError := my.DbObj.Begin()
+	if txError != nil {
+		cli.PrintColor("x> Error starting transaction: "+txError.Error(), "red", true)
+		return txError
+	}
+
+	for _, sqlFile := range sqlFiles {
+		cli.PrintColor(fmt.Sprintf("=> executing migration %s", RemoveFileExtension(sqlFile.Name())), "blue", true)
+		queryFilePath := filepath.Join(migrationPath, sqlFile.Name())
+		query, readFileError := os.ReadFile(queryFilePath)
+		if readFileError != nil {
+			cli.PrintColor("x> Error reading SQL file: "+readFileError.Error(), "red", true)
+			return readFileError
+		}
+
+		_, queryError := my.DbObj.Exec(string(query))
+		if queryError != nil {
+			tx.Rollback()
+			cli.PrintColor("x> SQL Error: "+queryError.Error(), "red", true)
+			return queryError
+		}
+
+		cli.PrintColor(fmt.Sprintf("=> migration %s executed successfully", RemoveFileExtension(sqlFile.Name())), "green", true)
+	}
+	tx.Commit()
+
+	return nil
 }

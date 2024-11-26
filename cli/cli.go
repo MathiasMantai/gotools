@@ -82,6 +82,7 @@ func PrintWithTime(text string, newLine bool) {
 	fmt.Print(rsString)
 }
 
+// prints a message with the current time. The string will also be colored
 func PrintWithTimeAndColor(text string, color string, newLine bool) {
 	coloredString := ColorString(text, color)
 	PrintWithTime(coloredString, newLine)
