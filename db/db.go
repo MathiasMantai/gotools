@@ -17,8 +17,6 @@ import (
 )
 
 
-
-
 type DbConnData struct {
 	Server   string
 	Port     string

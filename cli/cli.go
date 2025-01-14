@@ -74,7 +74,7 @@ func GetBoldAndColor(text string, color string, newLine bool) string {
 //prints a message with the current time in front of it. Time will be system time
 func PrintWithTime(text string, newLine bool) {
 	time := time.Now()
-	rsString := fmt.Sprintf("[%v] => %v", time.Format("02.01.2006 15:04:05"), text)
+	rsString := fmt.Sprintf("[%v] %v", time.Format("02.01.2006 15:04:05"), text)
 	if newLine {
 		rsString = rsString + "\n"
 	}
