@@ -4,7 +4,8 @@ import (
 	"os"
 )
 
-/**
+/*
+*
 checks whether a file or directory exists
 */
 func FileExists(path string) bool {
@@ -14,3 +15,5 @@ func FileExists(path string) bool {
 
 	return true
 }
+
+

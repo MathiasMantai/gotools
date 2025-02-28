@@ -8,6 +8,8 @@ require (
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	golang.org/x/image v0.18.0
+	golang.org/x/sys v0.15.0
+	golang.org/x/term v0.15.0
 )
 
 require (

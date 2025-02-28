@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"github.com/MathiasMantai/gotools/osutil"
 )
 
 const (
@@ -36,7 +37,16 @@ func PrintColor(text string, color string, newLine bool) {
 	if newLine {
 		newLineString = "\n"
 	}
-	fmt.Printf("%s%s%s%s", colors[color], text, Reset, newLineString)
+
+	colorString := colors[color]
+	reset := Reset
+
+	if !osutil.SupportsANSI() {
+		colorString = ""
+		reset = ""
+	}
+
+	fmt.Printf("%s%s%s%s", colorString, text, reset, newLineString)
 }
 
 // print a text as bold
@@ -71,7 +81,7 @@ func GetBoldAndColor(text string, color string, newLine bool) string {
 	return fmt.Sprintf("%s%s%s%s%s", colors[color], Bold, text, Reset, newLineString)
 }
 
-//prints a message with the current time in front of it. Time will be system time
+// prints a message with the current time in front of it. Time will be system time
 func PrintWithTime(text string, newLine bool) {
 	time := time.Now()
 	rsString := fmt.Sprintf("[%v] %v", time.Format("02.01.2006 15:04:05"), text)
