@@ -24,7 +24,7 @@ type SqliteDb struct {
 	FilePath string
 }
 
-func ConnectSqlite(filePath string) (*SqliteDb, error) {
+func Connect(filePath string) (*SqliteDb, error) {
 	var db SqliteDb
 
 	db.FilePath = filePath

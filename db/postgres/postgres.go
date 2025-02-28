@@ -29,7 +29,7 @@ type PgSqlDb struct {
 
 // returns a PgSqlDb instance and an error
 // if an error is returned the instance will be nil
-func ConnectPgSqlDb(server string, port string, database string, user string, pw string) (*PgSqlDb, error) {
+func Connect(server string, port string, database string, user string, pw string) (*PgSqlDb, error) {
 	var db PgSqlDb
 
 	db.ConnData = DbConnData{
@@ -53,7 +53,7 @@ func ConnectPgSqlDb(server string, port string, database string, user string, pw
 	return &db, nil
 }
 
-func (pg *PgSqlDb) MakeMigrations(migrationPath string) error {
+func (pg *PgSqlDb) Migrate(migrationPath string) error {
 
 	sqlFiles, readDirError := os.ReadDir(migrationPath)
 	if readDirError != nil {

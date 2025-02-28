@@ -26,7 +26,7 @@ type MssqlDb struct {
 	ConnData DbConnData
 }
 
-func ConnectMssql(server string, port string, database string, user string, pw string) (*MssqlDb, error) {
+func Connect(server string, port string, database string, user string, pw string) (*MssqlDb, error) {
 	var db MssqlDb
 
 	db.ConnData = DbConnData{
@@ -49,7 +49,7 @@ func ConnectMssql(server string, port string, database string, user string, pw s
 	return &db, nil
 }
 
-func (ms *MssqlDb) MakeMigrations(migrationPath string) error {
+func (ms *MssqlDb) Migrate(migrationPath string) error {
 
 	sqlFiles, readDirError := os.ReadDir(migrationPath)
 	if readDirError != nil {
@@ -82,4 +82,3 @@ func (ms *MssqlDb) MakeMigrations(migrationPath string) error {
 
 	return nil
 }
-

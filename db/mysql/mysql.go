@@ -55,7 +55,7 @@ func Connect(server string, port string, database string, user string, pw string
 	return &cdb, nil
 }
 
-func (my *MySqlDb) MakeMigrations(migrationPath string) error {
+func (my *MySqlDb) Migrate(migrationPath string) error {
 	cli.PrintColor("=> Attempting to migrate database tables...", "blue", true)
 	sqlFiles, readDirError := os.ReadDir(migrationPath)
 	if readDirError != nil {
