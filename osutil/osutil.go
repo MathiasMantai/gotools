@@ -15,5 +15,3 @@ func FileExists(path string) bool {
 
 	return true
 }
-
-

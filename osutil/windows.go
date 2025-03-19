@@ -1,10 +1,9 @@
 package osutil
 
 import (
-		"syscall"
 	"golang.org/x/sys/windows"
+	"syscall"
 )
-
 
 func SupportsANSI() bool {
 	// Get handle to standard output (console)

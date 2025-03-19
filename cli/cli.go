@@ -2,9 +2,9 @@ package cli
 
 import (
 	"fmt"
+	"github.com/MathiasMantai/gotools/osutil"
 	"strings"
 	"time"
-	"github.com/MathiasMantai/gotools/osutil"
 )
 
 const (
