@@ -1,17 +1,14 @@
 package mssql
 
-
 import (
 	"database/sql"
 	"fmt"
-	"github.com/MathiasMantai/gotools/db"
 	"github.com/MathiasMantai/gotools/cli"
+	"github.com/MathiasMantai/gotools/db"
 	_ "github.com/denisenkom/go-mssqldb"
 	"os"
 	"path/filepath"
 )
-
-
 
 type DbConnData struct {
 	Server   string
@@ -38,7 +35,7 @@ func Connect(server string, port string, database string, user string, pw string
 	}
 
 	connectionString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%s;database=%s", db.ConnData.Server, db.ConnData.User, db.ConnData.Pw, db.ConnData.Port, db.ConnData.Database)
-	cli.PrintWithTimeAndColor("=> establishing database connection with database " + database, "green", true)
+	cli.PrintWithTimeAndColor("=> establishing database connection with database "+database, "green", true)
 	dbObj, ConnError := sql.Open("mssql", connectionString)
 	if ConnError != nil {
 		return nil, ConnError

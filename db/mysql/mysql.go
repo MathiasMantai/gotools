@@ -1,11 +1,10 @@
 package mysql
 
-
 import (
 	"database/sql"
 	"fmt"
-		"github.com/MathiasMantai/gotools/db"
 	"github.com/MathiasMantai/gotools/cli"
+	"github.com/MathiasMantai/gotools/db"
 	_ "github.com/go-sql-driver/mysql"
 	"os"
 	"path/filepath"

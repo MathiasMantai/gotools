@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"fmt"
-	"github.com/MathiasMantai/gotools/db"
 	"github.com/MathiasMantai/gotools/cli"
+	"github.com/MathiasMantai/gotools/db"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5"
@@ -46,7 +46,7 @@ func Connect(server string, port string, database string, user string, pw string
 		return nil, connError
 	}
 
-	cli.PrintWithTimeAndColor("=> establishing Database connection with database " + database, "green", true)
+	cli.PrintWithTimeAndColor("=> establishing Database connection with database "+database, "green", true)
 
 	db.DbObj = conn
 

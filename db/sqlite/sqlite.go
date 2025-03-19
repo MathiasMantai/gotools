@@ -29,7 +29,7 @@ func Connect(filePath string) (*SqliteDb, error) {
 
 	db.FilePath = filePath
 
-	cli.PrintWithTimeAndColor("=> establishing Database connection with database at path " + filePath, "green", true)
+	cli.PrintWithTimeAndColor("=> establishing Database connection with database at path "+filePath, "green", true)
 	dbObj, ConnError := sql.Open("sqlite3", db.FilePath)
 	if ConnError != nil {
 		return nil, ConnError
