@@ -2,6 +2,7 @@ package datastructures
 
 import (
 	"fmt"
+	"slices"
 )
 
 func IsValueInSlice(value interface{}, slice []interface{}) bool {
@@ -24,7 +25,8 @@ func StringToInterfaceSlice(arr []string) []interface{} {
 func RemoveSliceValue(value interface{}, slice []interface{}) []interface{} {
 	for i, item := range slice {
 		if item == value {
-			slice = append(slice[:i], slice[i+1:]...)
+			// slice = append(slice[:i], slice[i+1:]...)
+			slice = slices.Delete(slice, i, i+1)
 			break
 		}
 	}
@@ -44,7 +46,8 @@ func GetIntSliceSum(values []int) int {
 func RemoveSliceValueTwoD(value int, slice [][]interface{}) [][]interface{} {
 	for i := range slice {
 		if i == value {
-			slice = append(slice[:i], slice[i+1:]...)
+			// slice = append(slice[:i], slice[i+1:]...)
+			slice = slices.Delete(slice, i, i+1)
 			break
 		}
 	}
