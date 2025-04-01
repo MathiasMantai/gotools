@@ -10,6 +10,7 @@ require (
 	golang.org/x/image v0.18.0
 	golang.org/x/sys v0.15.0
 	golang.org/x/term v0.15.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (

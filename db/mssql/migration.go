@@ -1,6 +1,5 @@
 package mssql
 
-
 import (
 	"fmt"
 	"github.com/MathiasMantai/gotools/cli"
@@ -8,10 +7,9 @@ import (
 )
 
 type MigrationRunner struct {
-	Migrations           []Migration
-	Db                   *MssqlDb
+	Migrations []Migration
+	Db         *MssqlDb
 }
-
 
 func (m *MigrationRunner) Run() error {
 
