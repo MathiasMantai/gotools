@@ -92,7 +92,41 @@ func Create(options *LoggerOptions) Logger {
 		options.WarningColor = "yellow"
 	}
 
-	log.SetOutput(&lumberjack.Logger{})
+	// log.SetOutput(&lumberjack.Logger{
+	// 	Filename: options.Filename,
+	// 	MaxSize: options.MaxSize,
+	// 	MaxAge: options.MaxAge,
+	// 	MaxBackups: options.MaxBackups,
+	// 	LocalTime: options.LocalTime,
+	// })
+
+
+
+
+	if options.LogToFile {
+		lLogger := &lumberjack.Logger{}
+
+		if strings.TrimSpace(options.Filename) != "" {
+			lLogger.Filename = options.Filename
+		}
+
+		if options.MaxSize != 0 {
+			lLogger.MaxSize = options.MaxSize
+		}
+
+		if options.MaxAge != 0 {
+			lLogger.MaxAge = options.MaxAge
+		}
+
+		if options.MaxBackups != 0 {
+			lLogger.MaxBackups = options.MaxBackups
+		}
+
+		lLogger.LocalTime = options.LocalTime
+		lLogger.Compress = options.Compress
+
+		log.SetOutput(lLogger)
+	}
 
 	return Logger{
 		Options: *options,
