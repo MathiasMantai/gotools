@@ -2,8 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"runtime"
-	"github.com/MathiasMantai/gotools/osutil"
 	"strings"
 	"time"
 )
@@ -41,12 +39,6 @@ func PrintColor(text string, color string, newLine bool) {
 
 	colorString := colors[color]
 	reset := Reset
-	if runtime.GOOS == "windows" {
-		if !osutil.SupportsANSI() {
-			colorString = ""
-			reset = ""
-		} 
-	}
 
 	fmt.Printf("%s%s%s%s", colorString, text, reset, newLineString)
 }
