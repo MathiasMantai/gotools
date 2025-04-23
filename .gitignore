@@ -7,3 +7,7 @@ migrations
 *.jpg
 *.png
 *.exe
+.env
+.env.*
+log
+logs
