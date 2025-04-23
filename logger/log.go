@@ -100,9 +100,6 @@ func Create(options *LoggerOptions) Logger {
 	// 	LocalTime: options.LocalTime,
 	// })
 
-
-
-
 	if options.LogToFile {
 		lLogger := &lumberjack.Logger{}
 
