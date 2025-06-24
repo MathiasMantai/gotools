@@ -15,7 +15,7 @@ func Load(filePaths []string) error {
 		contentParts := strings.Split(string(content), "\n")
 		for _, envRow := range contentParts {
 			envParts := strings.Split(envRow, "=")
-			err = os.Setenv(envParts[0], envParts[1])
+			err = os.Setenv(envParts[0], strings.TrimSpace(envParts[1]))
 			if err != nil {
 				return fmt.Errorf("environment variable %v could not be set", envParts[0])
 			}

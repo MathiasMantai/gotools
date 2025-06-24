@@ -9,6 +9,7 @@ type Config struct {
 	Data map[string]interface{}
 }
 
+//fetch a json file and populate the Data attribute with its contents
 func (c *Config) Fetch(filePath string) error {
 	fileContent, readError := os.ReadFile(filePath)
 	if readError != nil {

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"github.com/MathiasMantai/gotools/cli"
 	"github.com/MathiasMantai/gotools/db"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
+	"net"
 	"os"
 	"path/filepath"
-	"strings"
+	"time"
 )
 
 type DbConnData struct {
@@ -17,6 +18,7 @@ type DbConnData struct {
 	Database string
 	User     string
 	Pw       string
+	Protocol string
 }
 
 /* MySQL */
@@ -28,28 +30,44 @@ type MySqlDb struct {
 
 func Connect(server string, port string, database string, user string, pw string, protocol string) (*MySqlDb, error) {
 	var (
-		cdb              MySqlDb
-		connectionString string
+		cdb MySqlDb
 	)
+
 	cdb.ConnData = DbConnData{
 		Server:   server,
 		Port:     port,
 		Database: database,
 		User:     user,
 		Pw:       pw,
+		Protocol: protocol,
+	}
+	cfg := mysql.Config{
+		User:                 user,
+		Passwd:               pw,
+		Net:                  protocol,
+		Addr:                 net.JoinHostPort(server, port),
+		DBName:               database,
+		AllowNativePasswords: true,
+		ParseTime:            true,
 	}
 
-	if strings.TrimSpace(protocol) == "" {
-		connectionString = fmt.Sprintf("%s:%s@%s/%s", user, pw, server, database)
-	} else {
-		connectionString = fmt.Sprintf("%s:%s@%s(%s)/%s", user, pw, protocol, server, database)
+	fmt.Println(server)
+
+	if cfg.Net == "" {
+		cfg.Net = "tcp"
 	}
-	fmt.Println(connectionString)
-	conn, connError := sql.Open("mysql", connectionString)
+
+	dsn := cfg.FormatDSN()
+	fmt.Println(dsn)
+	conn, connError := sql.Open("mysql", dsn)
 	if connError != nil {
 		return nil, connError
 	}
+	cli.PrintWithTimeAndColor("=> successfully connected to database "+database, "green", true)
 
+	conn.SetConnMaxLifetime(time.Minute * 3)
+	conn.SetMaxOpenConns(10)
+	conn.SetMaxIdleConns(10)
 	cdb.DbObj = conn
 	return &cdb, nil
 }
