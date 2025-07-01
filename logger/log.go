@@ -58,11 +58,11 @@ type LoggerOptions struct {
 	//default is true
 	LogWithColor bool
 
-	//determines the color for the console strings of a success message
+	//determines the color for the console strings of a normal message
 	//default is white
 	MessageColor string
 
-	//determines the color for the console strings of a success message
+	//determines the color for the console strings of a error message
 	//default is red
 	ErrorColor string
 

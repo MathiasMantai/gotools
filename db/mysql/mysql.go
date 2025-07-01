@@ -51,8 +51,6 @@ func Connect(server string, port string, database string, user string, pw string
 		ParseTime:            true,
 	}
 
-	fmt.Println(server)
-
 	if cfg.Net == "" {
 		cfg.Net = "tcp"
 	}

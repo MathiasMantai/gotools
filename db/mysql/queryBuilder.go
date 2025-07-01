@@ -1,14 +1,11 @@
 package mysql
 
 import (
-	"errors"
 	"fmt"
-	"github.com/MathiasMantai/gotools/datastructures"
 	"strings"
 )
 
 type QueryBuilder struct {
-	Type  string
 	Query string
 }
 
@@ -20,13 +17,8 @@ var supportedTypes = []string{
 	"postgres",
 }
 
-func NewQueryBuilder(queryBuilderType string) (*QueryBuilder, error) {
-
-	if !datastructures.IsValueInSlice(queryBuilderType, datastructures.StringToInterfaceSlice(supportedTypes)) {
-		return nil, errors.New("specified type not supported")
-	}
-
-	return &QueryBuilder{Type: queryBuilderType}, nil
+func NewQueryBuilder() *QueryBuilder {
+	return &QueryBuilder{}
 }
 
 // Get will return the finished query as a string
@@ -78,5 +70,31 @@ func (q *QueryBuilder) And(column string, comparisonOperator string, value strin
 
 func (q *QueryBuilder) Or(column string, comparisonOperator string, value string) *QueryBuilder {
 	q.Query += fmt.Sprintf("OR %s %s %s ", column, comparisonOperator, value)
+	return q
+}
+
+func (q *QueryBuilder) OrderBy(columns []string) *QueryBuilder {
+	q.Query += "ORDER BY "
+	length := len(columns)
+	for key, column := range columns {
+		q.Query += fmt.Sprintf("%v", column)
+		if key < length {
+			q.Query += ", "
+		}
+	}
+
+	return q
+}
+
+func (q *QueryBuilder) GroupBy(columns []string) *QueryBuilder {
+	q.Query += "GROUP BY "
+	length := len(columns)
+	for key, column := range columns {
+		q.Query += fmt.Sprintf("%v", column)
+		if key < length {
+			q.Query += ", "
+		}
+	}
+
 	return q
 }
