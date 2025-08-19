@@ -4,7 +4,6 @@
 - created an interface GotoolsDb which all available database types implement
 - created a struct Db with Methods Query, QueryRow, BeginTx and Exec to use as a wrapper for all database types
 
-
 ## v0.1.2 (2025-07-01)
 
 ### Bugfixes

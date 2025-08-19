@@ -10,9 +10,9 @@ import (
 )
 
 type GotoolsDb interface {
-	Query(string, ...interface{}) (*sql.Rows, error)
-	QueryRow(string, ...interface{}) *sql.Row
-	Exec(string, ...interface{}) (sql.Result, error)
+	Query(string, ...any) (*sql.Rows, error)
+	QueryRow(string, ...any) *sql.Row
+	Exec(string, ...any) (sql.Result, error)
 	BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
 }
 
@@ -78,14 +78,14 @@ func (mdb *Db) BeginTx(ctx context.Context, options *sql.TxOptions) (*sql.Tx, er
 	return mdb.DbObj.BeginTx(ctx, options)
 }
 
-func (mdb *Db) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (mdb *Db) Exec(query string, args ...any) (sql.Result, error) {
 	return mdb.DbObj.Exec(query, args...)
 }
 
-func (mdb *Db) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (mdb *Db) Query(query string, args ...any) (*sql.Rows, error) {
 	return mdb.DbObj.Query(query, args...)
 }
 
-func (mdb *Db) QueryRow(query string, args ...interface{}) *sql.Row {
+func (mdb *Db) QueryRow(query string, args ...any) *sql.Row {
 	return mdb.DbObj.QueryRow(query, args...)
 }

@@ -31,15 +31,15 @@ func (mdb *MySqlDb) BeginTx(ctx context.Context, options *sql.TxOptions) (*sql.T
 	return mdb.DbObj.BeginTx(ctx, options)
 }
 
-func (mdb *MySqlDb) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (mdb *MySqlDb) Exec(query string, args ...any) (sql.Result, error) {
 	return mdb.DbObj.Exec(query, args...)
 }
 
-func (mdb *MySqlDb) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (mdb *MySqlDb) Query(query string, args ...any) (*sql.Rows, error) {
 	return mdb.DbObj.Query(query, args...)
 }
 
-func (mdb *MySqlDb) QueryRow(query string, args ...interface{}) *sql.Row {
+func (mdb *MySqlDb) QueryRow(query string, args ...any) *sql.Row {
 	return mdb.DbObj.QueryRow(query, args...)
 }
 

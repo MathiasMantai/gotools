@@ -28,15 +28,15 @@ func (mdb *PgSqlDb) BeginTx(ctx context.Context, options *sql.TxOptions) (*sql.T
 	return mdb.DbObj.BeginTx(ctx, options)
 }
 
-func (mdb *PgSqlDb) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (mdb *PgSqlDb) Exec(query string, args ...any) (sql.Result, error) {
 	return mdb.DbObj.Exec(query, args...)
 }
 
-func (mdb *PgSqlDb) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (mdb *PgSqlDb) Query(query string, args ...any) (*sql.Rows, error) {
 	return mdb.DbObj.Query(query, args...)
 }
 
-func (mdb *PgSqlDb) QueryRow(query string, args ...interface{}) *sql.Row {
+func (mdb *PgSqlDb) QueryRow(query string, args ...any) *sql.Row {
 	return mdb.DbObj.QueryRow(query, args...)
 }
 
