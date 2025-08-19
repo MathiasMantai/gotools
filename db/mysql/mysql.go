@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/MathiasMantai/gotools/cli"
-	"github.com/MathiasMantai/gotools/db"
+	// "github.com/MathiasMantai/gotools/db"
 	"github.com/go-sql-driver/mysql"
 	"net"
-	"os"
-	"path/filepath"
+	// "os"
+	// "path/filepath"
+	"context"
 	"time"
 )
 
@@ -21,14 +22,29 @@ type DbConnData struct {
 	Protocol string
 }
 
-/* MySQL */
-
 type MySqlDb struct {
 	DbObj    *sql.DB
 	ConnData DbConnData
 }
 
+func (mdb *MySqlDb) BeginTx(ctx context.Context, options *sql.TxOptions) (*sql.Tx, error) {
+	return mdb.DbObj.BeginTx(ctx, options)
+}
+
+func (mdb *MySqlDb) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return mdb.DbObj.Exec(query, args...)
+}
+
+func (mdb *MySqlDb) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return mdb.DbObj.Query(query, args...)
+}
+
+func (mdb *MySqlDb) QueryRow(query string, args ...interface{}) *sql.Row {
+	return mdb.DbObj.QueryRow(query, args...)
+}
+
 func Connect(server string, port string, database string, user string, pw string, protocol string) (*MySqlDb, error) {
+
 	var (
 		cdb MySqlDb
 	)
@@ -68,42 +84,4 @@ func Connect(server string, port string, database string, user string, pw string
 	conn.SetMaxIdleConns(10)
 	cdb.DbObj = conn
 	return &cdb, nil
-}
-
-func (my *MySqlDb) Migrate(migrationPath string) error {
-	cli.PrintColor("=> Attempting to migrate database tables...", "blue", true)
-	sqlFiles, readDirError := os.ReadDir(migrationPath)
-	if readDirError != nil {
-		cli.PrintColor("Error reading dir", "red", true)
-		return readDirError
-	}
-
-	tx, txError := my.DbObj.Begin()
-	if txError != nil {
-		cli.PrintColor("x> Error starting transaction: "+txError.Error(), "red", true)
-		return txError
-	}
-
-	for _, sqlFile := range sqlFiles {
-		name := db.RemoveFileExtension(sqlFile.Name())
-		cli.PrintColor(fmt.Sprintf("=> executing migration %s", name), "blue", true)
-		queryFilePath := filepath.Join(migrationPath, sqlFile.Name())
-		query, readFileError := os.ReadFile(queryFilePath)
-		if readFileError != nil {
-			cli.PrintColor("x> Error reading SQL file: "+readFileError.Error(), "red", true)
-			return readFileError
-		}
-
-		_, queryError := my.DbObj.Exec(string(query))
-		if queryError != nil {
-			tx.Rollback()
-			cli.PrintColor("x> SQL Error: "+queryError.Error(), "red", true)
-			return queryError
-		}
-
-		cli.PrintColor(fmt.Sprintf("=> migration %s executed successfully", name), "green", true)
-	}
-	tx.Commit()
-
-	return nil
 }

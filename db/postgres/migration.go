@@ -49,7 +49,7 @@ func (mr *MigrationRunner) Run() error {
 		if !applied {
 			query := migration.CreateQuery()
 
-			_, err := mr.Db.DbObj.Exec(ctx, query)
+			_, err := mr.Db.DbObj.Exec(query)
 			if err != nil {
 				cli.PrintWithTimeAndColor(fmt.Sprintf("x> error executing %s: %v", migrationText, err), "red", true)
 				return fmt.Errorf("executing migration '%s' failed: %w", migration.TableName, err)
@@ -78,7 +78,7 @@ func (mr *MigrationRunner) LogMigration(ctx context.Context, tableName string, d
         VALUES ($1, $2, NOW())
     `
 
-	_, err := mr.Db.DbObj.Exec(ctx, insertQuery, tableName, description)
+	_, err := mr.Db.DbObj.Exec(insertQuery, tableName, description)
 	if err != nil {
 		return fmt.Errorf("inserting migration log for '%s' failed: %w", tableName, err)
 	}
@@ -97,7 +97,7 @@ func (mr *MigrationRunner) IsMigrationApplied(ctx context.Context, name string) 
 
 	var count int
 
-	err := mr.Db.DbObj.QueryRow(ctx, query, name).Scan(&count)
+	err := mr.Db.DbObj.QueryRow(query, name).Scan(&count)
 
 	if err != nil {
 		return false, fmt.Errorf("querying migration status for '%s' failed: %w", name, err)
@@ -116,7 +116,7 @@ func (mr *MigrationRunner) SetupMigrationTable(ctx context.Context) error {
 	);
 	`
 	cli.PrintWithTimeAndColor("=> ensuring migrations table exists...", "blue", true)
-	_, err := mr.Db.DbObj.Exec(ctx, query)
+	_, err := mr.Db.DbObj.Exec(query)
 	if err != nil {
 		cli.PrintWithTimeAndColor(fmt.Sprintf("x> error creating/checking migrations table: %v", err), "red", true)
 		return fmt.Errorf("creating/checking migrations table failed: %w", err)

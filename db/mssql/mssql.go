@@ -1,10 +1,11 @@
 package mssql
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/MathiasMantai/gotools/cli"
-	"github.com/MathiasMantai/gotools/db"
+	"github.com/MathiasMantai/gotools/db/util"
 	_ "github.com/denisenkom/go-mssqldb"
 	"os"
 	"path/filepath"
@@ -21,6 +22,22 @@ type DbConnData struct {
 type MssqlDb struct {
 	DbObj    *sql.DB
 	ConnData DbConnData
+}
+
+func (mdb *MssqlDb) BeginTx(ctx context.Context, options *sql.TxOptions) (*sql.Tx, error) {
+	return mdb.DbObj.BeginTx(ctx, options)
+}
+
+func (mdb *MssqlDb) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return mdb.DbObj.Exec(query, args...)
+}
+
+func (mdb *MssqlDb) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return mdb.DbObj.Query(query, args...)
+}
+
+func (mdb *MssqlDb) QueryRow(query string, args ...interface{}) *sql.Row {
+	return mdb.DbObj.QueryRow(query, args...)
 }
 
 func Connect(server string, port string, database string, user string, pw string) (*MssqlDb, error) {
@@ -73,7 +90,7 @@ func (ms *MssqlDb) Migrate(migrationPath string) error {
 			return queryError
 		}
 
-		fmt.Printf("=> migration %s executed successfully\n", db.RemoveFileExtension(sqlFile.Name()))
+		fmt.Printf("=> migration %s executed successfully\n", util.RemoveFileExtension(sqlFile.Name()))
 	}
 	tx.Commit()
 

@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"embed"
 	"fmt"
@@ -22,6 +23,22 @@ type DbConnData struct {
 type SqliteDb struct {
 	DbObj    *sql.DB
 	FilePath string
+}
+
+func (mdb *SqliteDb) BeginTx(ctx context.Context, options *sql.TxOptions) (*sql.Tx, error) {
+	return mdb.DbObj.BeginTx(ctx, options)
+}
+
+func (mdb *SqliteDb) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return mdb.DbObj.Exec(query, args...)
+}
+
+func (mdb *SqliteDb) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return mdb.DbObj.Query(query, args...)
+}
+
+func (mdb *SqliteDb) QueryRow(query string, args ...interface{}) *sql.Row {
+	return mdb.DbObj.QueryRow(query, args...)
 }
 
 func Connect(filePath string) (*SqliteDb, error) {

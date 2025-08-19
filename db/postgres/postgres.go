@@ -2,16 +2,13 @@ package postgres
 
 import (
 	"context"
-
 	"fmt"
 	"github.com/MathiasMantai/gotools/cli"
-	"github.com/MathiasMantai/gotools/db"
-	_ "github.com/denisenkom/go-mssqldb"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jackc/pgx/v5"
-	_ "github.com/mattn/go-sqlite3"
-	"os"
-	"path/filepath"
+	// "github.com/MathiasMantai/gotools/db/util"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	// "os"
+	// "path/filepath"
+	"database/sql"
 )
 
 type DbConnData struct {
@@ -23,8 +20,24 @@ type DbConnData struct {
 }
 
 type PgSqlDb struct {
-	DbObj    *pgx.Conn
+	DbObj    *sql.DB
 	ConnData DbConnData
+}
+
+func (mdb *PgSqlDb) BeginTx(ctx context.Context, options *sql.TxOptions) (*sql.Tx, error) {
+	return mdb.DbObj.BeginTx(ctx, options)
+}
+
+func (mdb *PgSqlDb) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return mdb.DbObj.Exec(query, args...)
+}
+
+func (mdb *PgSqlDb) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return mdb.DbObj.Query(query, args...)
+}
+
+func (mdb *PgSqlDb) QueryRow(query string, args ...interface{}) *sql.Row {
+	return mdb.DbObj.QueryRow(query, args...)
 }
 
 // returns a PgSqlDb instance and an error
@@ -41,7 +54,7 @@ func Connect(server string, port string, database string, user string, pw string
 	}
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	connectionString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, pw, server, port, database)
-	conn, connError := pgx.Connect(context.Background(), connectionString)
+	conn, connError := sql.Open("pgx", connectionString)
 	if connError != nil {
 		return nil, connError
 	}
@@ -51,39 +64,4 @@ func Connect(server string, port string, database string, user string, pw string
 	db.DbObj = conn
 
 	return &db, nil
-}
-
-func (pg *PgSqlDb) Migrate(migrationPath string) error {
-
-	sqlFiles, readDirError := os.ReadDir(migrationPath)
-	if readDirError != nil {
-		fmt.Println("Error reading dir")
-		return readDirError
-	}
-
-	tx, txError := pg.DbObj.Begin(context.Background())
-	if txError != nil {
-
-		return txError
-	}
-
-	for _, sqlFile := range sqlFiles {
-		fmt.Printf("=> executing migration %s\n", sqlFile.Name())
-		queryFilePath := filepath.Join(migrationPath, sqlFile.Name())
-		query, readFileError := os.ReadFile(queryFilePath)
-		if readFileError != nil {
-			return readFileError
-		}
-
-		_, queryError := pg.DbObj.Exec(context.Background(), string(query))
-		if queryError != nil {
-			tx.Rollback(context.Background())
-			return queryError
-		}
-
-		fmt.Printf("=> migration %s executed successfully\n", db.RemoveFileExtension(sqlFile.Name()))
-	}
-	tx.Commit(context.Background())
-
-	return nil
 }

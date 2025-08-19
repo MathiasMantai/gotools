@@ -11,44 +11,111 @@ type MigrationRunner struct {
 	Db         *MssqlDb
 }
 
-func (m *MigrationRunner) Run() error {
+type MigrationField struct {
+	Name          string
+	DataType      string
+	Nullable      bool
+	PrimaryKey    bool
+	AutoIncrement bool
+}
 
+type ForeignKey struct {
+	Name            string
+	Column          string
+	ReferenceTable  string
+	ReferenceColumn string
+}
+
+type Migration struct {
+	TableName   string
+	Description string
+	Fields      []MigrationField
+	ForeignKeys []ForeignKey
+}
+
+func (m *MigrationRunner) Run() error {
 	err := m.SetupMigrationTable()
 	if err != nil {
 		return err
 	}
 
-	for key, migration := range m.Migrations {
+	var schema string
+	err = m.Db.DbObj.QueryRow(`SELECT SCHEMA_NAME()`).Scan(&schema)
+	if err != nil {
+		return fmt.Errorf("x> could not determine default database schema: %w", err)
+	}
+	cli.PrintWithTimeAndColor(fmt.Sprintf("=> working in schema: [%s]", schema), "cyan", true)
 
-		migrationText := fmt.Sprintf("migration %d - %v", key, migration.TableName)
+	for key, migration := range m.Migrations {
+		migrationText := fmt.Sprintf("migration %d - %s", key, migration.TableName)
 		cli.PrintWithTimeAndColor("=> attempting to apply "+migrationText, "blue", true)
-		//check if migration already exists
+
 		applied, err := m.IsMigrationApplied(migration.TableName)
 		if err != nil {
 			cli.PrintWithTimeAndColor("x> error checking whether migration is applied: "+err.Error(), "red", true)
 			return err
 		}
-		// fmt.Printf("migration applied: %f\n", applied)
-		if !applied {
-			query := migration.CreateQuery()
-			// fmt.Println(query)
 
-			_, err := m.Db.DbObj.Exec(query)
+		if !applied {
+			createQuery := migration.CreateQuery()
+			_, err := m.Db.DbObj.Exec(createQuery)
 			if err != nil {
-				cli.PrintWithTimeAndColor(fmt.Sprintf("x> error executing %v: %v", migrationText, err.Error()), "red", true)
+				cli.PrintWithTimeAndColor(fmt.Sprintf("x> error executing create table for %v: %v", migrationText, err.Error()), "red", true)
 				return err
 			}
-			cli.PrintWithTimeAndColor("=> migration successfully applied", "green", true)
+			cli.PrintWithTimeAndColor("=> table created or already exists.", "green", true)
+
+			fkQueries := migration.CreateForeignKeyQueries(schema)
+			if len(fkQueries) > 0 {
+				cli.PrintWithTimeAndColor(fmt.Sprintf("=> applying %d foreign key(s) for %s...", len(fkQueries), migration.TableName), "blue", true)
+				for i, fkQuery := range fkQueries {
+					_, err := m.Db.DbObj.Exec(fkQuery)
+					if err != nil {
+						cli.PrintWithTimeAndColor(fmt.Sprintf("x> error executing foreign key %d for %v: %v", i+1, migrationText, err.Error()), "red", true)
+						return err
+					}
+				}
+				cli.PrintWithTimeAndColor("=> foreign keys successfully applied.", "green", true)
+			}
+
 			err = m.LogMigration(migration.TableName, migration.Description)
 			if err != nil {
 				return err
 			}
+			cli.PrintWithTimeAndColor("=> migration successfully applied and logged.", "green", true)
+
 		} else {
 			cli.PrintWithTimeAndColor("=> "+migrationText+" already applied. Skipping...", "yellow", true)
 		}
 	}
 
 	return nil
+}
+
+func (m *Migration) CreateForeignKeyQueries(schema string) []string {
+	var queries []string
+
+	for _, fk := range m.ForeignKeys {
+		query := fmt.Sprintf(`
+            IF NOT EXISTS (SELECT * FROM sys.foreign_keys 
+                           WHERE name = '%s' AND parent_object_id = OBJECT_ID('[%s].[%s]'))
+            BEGIN
+                ALTER TABLE [%s].[%s] WITH CHECK ADD CONSTRAINT [%s] FOREIGN KEY([%s])
+                REFERENCES [%s].[%s] ([%s]);
+
+                ALTER TABLE [%s].[%s] CHECK CONSTRAINT [%s];
+            END
+        `,
+			fk.Name,
+			schema, m.TableName,
+			schema, m.TableName, fk.Name, fk.Column,
+			schema, fk.ReferenceTable, fk.ReferenceColumn,
+			schema, m.TableName, fk.Name)
+
+		queries = append(queries, strings.TrimSpace(query))
+	}
+
+	return queries
 }
 
 func (ms *MigrationRunner) LogMigration(tableName string, description string) error {
@@ -191,42 +258,53 @@ func (mr *MigrationRunner) AddMigration(tableName string, fields []MigrationFiel
 	})
 }
 
-type Migration struct {
-	TableName   string
-	Description string
-	Fields      []MigrationField
-}
-
 func (m *Migration) CreateQuery() string {
-	var fields string
-	for index, field := range m.Fields {
-		fields += fmt.Sprintf("%v %v", field.Name, strings.ToUpper(field.DataType))
+	var fields []string
+	var primaryKeyFields []string
+
+	for _, field := range m.Fields {
+		fieldDef := fmt.Sprintf("[%s] %s", field.Name, strings.ToUpper(field.DataType))
+
 		if field.AutoIncrement {
-			fields += " IDENTITY(1, 1)"
+			fieldDef += " IDENTITY(1, 1)"
 		}
-		if index < len(m.Fields)-1 {
-			fields += ","
+
+		if field.Nullable {
+			fieldDef += " NULL"
+		} else {
+			fieldDef += " NOT NULL"
 		}
-		fields += "\n\t"
+
+		fields = append(fields, fieldDef)
+
+		if field.PrimaryKey {
+			primaryKeyFields = append(primaryKeyFields, fmt.Sprintf("[%s]", field.Name))
+		}
 	}
 
-	//create query and check if table already exists
-	query := fmt.Sprintf(`
+	fieldsString := strings.Join(fields, ",\n\t\t")
 
+	if len(primaryKeyFields) > 0 {
+		pkConstraintName := fmt.Sprintf("PK_%s", m.TableName)
+		pkFieldsString := strings.Join(primaryKeyFields, ", ")
+		fieldsString += fmt.Sprintf(",\n\t\tCONSTRAINT [%s] PRIMARY KEY CLUSTERED (%s)", pkConstraintName, pkFieldsString)
+	}
+
+	query := fmt.Sprintf(`
 		DECLARE @CurrentSchema NVARCHAR(128);
 		SELECT @CurrentSchema = DEFAULT_SCHEMA_NAME 
 		FROM sys.database_principals 
 		WHERE name = CURRENT_USER;
 
-		IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = @CurrentSchema AND  TABLE_NAME = '%v')
+		IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = @CurrentSchema AND TABLE_NAME = '%s')
 		BEGIN
-				DECLARE @SQL NVARCHAR(MAX) = 'CREATE TABLE ' + QUOTENAME(@CurrentSchema) + '.[%v] (
-					%v
+				DECLARE @SQL NVARCHAR(MAX) = N'CREATE TABLE ' + QUOTENAME(@CurrentSchema) + '.[%s] (
+					%s
 				)';
 
 				EXEC sp_executesql @SQL;
 		END
-	`, m.TableName, m.TableName, fields)
+	`, m.TableName, m.TableName, fieldsString)
 
 	return strings.TrimSpace(query)
 }
@@ -236,14 +314,4 @@ func (m *Migration) AddField(name string, dataType string) {
 		Name:     name,
 		DataType: dataType,
 	})
-}
-
-// defines a single table field of a
-type MigrationField struct {
-	//name of field
-	Name string
-	//datatype of field
-	DataType string
-	//if the field is a primary key
-	AutoIncrement bool
 }
