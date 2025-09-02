@@ -24,15 +24,15 @@ func TestMysqlDb_Exec(t *testing.T) {
 		VALUES
 		(?, ?)
 	`
-	
-	mock.ExpectExec(regexp.QuoteMeta(expectedQuery)).WithArgs("Max Mustermann", "maxmustermann@test.com").WillReturnResult(sqlmock.NewResult(1,1))
+
+	mock.ExpectExec(regexp.QuoteMeta(expectedQuery)).WithArgs("Max Mustermann", "maxmustermann@test.com").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	result, err := mysqlDb.Exec(expectedQuery, "Max Mustermann", "maxmustermann@test.com")
-    require.NoError(t, err)
-    assert.NotNil(t, result)
-    
-    rowsAffected, _ := result.RowsAffected()
-    assert.Equal(t, int64(1), rowsAffected)
-    
-    assert.NoError(t, mock.ExpectationsWereMet())
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+
+	rowsAffected, _ := result.RowsAffected()
+	assert.Equal(t, int64(1), rowsAffected)
+
+	assert.NoError(t, mock.ExpectationsWereMet())
 }

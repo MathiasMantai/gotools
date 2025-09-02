@@ -11,3 +11,6 @@ migrations
 .env.*
 log
 logs
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

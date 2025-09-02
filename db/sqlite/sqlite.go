@@ -42,19 +42,33 @@ func (mdb *SqliteDb) QueryRow(query string, args ...any) *sql.Row {
 }
 
 func Connect(filePath string) (*SqliteDb, error) {
-	var db SqliteDb
+    var db SqliteDb
+    db.FilePath = filePath
 
-	db.FilePath = filePath
+    dir := filepath.Dir(filePath)
+    if dir != "." && dir != "" {
+        if err := os.MkdirAll(dir, 0755); err != nil {
+            return nil, fmt.Errorf("failed to create directory: %w", err)
+        }
+    }
 
-	cli.PrintWithTimeAndColor("=> establishing Database connection with database at path "+filePath, "green", true)
-	dbObj, ConnError := sql.Open("sqlite3", db.FilePath)
-	if ConnError != nil {
-		return nil, ConnError
-	}
+    cli.PrintWithTimeAndColor("=> establishing Database connection with database at path "+filePath, "green", true)
+    
+    connStr := fmt.Sprintf("%s?mode=rwc&_journal_mode=WAL", filePath)
+    
+    dbObj, ConnError := sql.Open("sqlite3", connStr)
+    if ConnError != nil {
+        return nil, ConnError
+    }
 
-	db.DbObj = dbObj
+    if err := dbObj.Ping(); err != nil {
+        return nil, fmt.Errorf("failed to ping database: %w", err)
+    }
 
-	return &db, nil
+    db.DbObj = dbObj
+    
+    cli.PrintWithTimeAndColor("=> Database connection established successfully", "green", true)
+    return &db, nil
 }
 
 func (s *SqliteDb) Migrate(migrationDir string) error {

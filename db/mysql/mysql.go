@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"database/sql"
-	"fmt"
+	// "fmt"
 	"github.com/MathiasMantai/gotools/cli"
 	// "github.com/MathiasMantai/gotools/db"
 	"github.com/go-sql-driver/mysql"
@@ -72,7 +72,7 @@ func Connect(server string, port string, database string, user string, pw string
 	}
 
 	dsn := cfg.FormatDSN()
-	fmt.Println(dsn)
+	// fmt.Println(dsn)
 	conn, connError := sql.Open("mysql", dsn)
 	if connError != nil {
 		return nil, connError

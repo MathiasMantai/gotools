@@ -11,28 +11,6 @@ type MigrationRunner struct {
 	Db         *MssqlDb
 }
 
-type MigrationField struct {
-	Name          string
-	DataType      string
-	Nullable      bool
-	PrimaryKey    bool
-	AutoIncrement bool
-}
-
-type ForeignKey struct {
-	Name            string
-	Column          string
-	ReferenceTable  string
-	ReferenceColumn string
-}
-
-type Migration struct {
-	TableName   string
-	Description string
-	Fields      []MigrationField
-	ForeignKeys []ForeignKey
-}
-
 func (m *MigrationRunner) Run() error {
 	err := m.SetupMigrationTable()
 	if err != nil {
@@ -92,30 +70,81 @@ func (m *MigrationRunner) Run() error {
 	return nil
 }
 
-func (m *Migration) CreateForeignKeyQueries(schema string) []string {
-	var queries []string
+func (ms *MigrationRunner) IsMigrationApplied(name string) (bool, error) {
+	query := fmt.Sprintf(`
+        DECLARE @MigrationName NVARCHAR(255) = '%s';
+        DECLARE @CurrentSchema NVARCHAR(128);
+        DECLARE @Count INT = 0;
+        DECLARE @SQL NVARCHAR(MAX);
+        
+        SELECT @CurrentSchema = DEFAULT_SCHEMA_NAME 
+        FROM sys.database_principals 
+        WHERE name = CURRENT_USER;
+        
+        SET @SQL = N'SELECT @CountOUT = COUNT(*) FROM ' + QUOTENAME(@CurrentSchema) + '.migrations WHERE name = @MigrationName';
+        
+        EXEC sp_executesql @SQL, 
+             N'@MigrationName NVARCHAR(255), @CountOUT INT OUTPUT', 
+             @MigrationName = @MigrationName, 
+             @CountOUT = @Count OUTPUT;
+        
+        SELECT @Count;
+    `, name)
 
-	for _, fk := range m.ForeignKeys {
-		query := fmt.Sprintf(`
-            IF NOT EXISTS (SELECT * FROM sys.foreign_keys 
-                           WHERE name = '%s' AND parent_object_id = OBJECT_ID('[%s].[%s]'))
-            BEGIN
-                ALTER TABLE [%s].[%s] WITH CHECK ADD CONSTRAINT [%s] FOREIGN KEY([%s])
-                REFERENCES [%s].[%s] ([%s]);
+	var count int
+	err := ms.Db.DbObj.QueryRow(query).Scan(&count)
 
-                ALTER TABLE [%s].[%s] CHECK CONSTRAINT [%s];
-            END
-        `,
-			fk.Name,
-			schema, m.TableName,
-			schema, m.TableName, fk.Name, fk.Column,
-			schema, fk.ReferenceTable, fk.ReferenceColumn,
-			schema, m.TableName, fk.Name)
+	if err != nil {
+		return false, fmt.Errorf("fehler beim Prüfen der Migration: %v", err)
+	}
+	return count > 0, nil
+}
 
-		queries = append(queries, strings.TrimSpace(query))
+func (mr *MigrationRunner) SetupMigrationTable() error {
+	query := `
+
+	DECLARE @CurrentSchema NVARCHAR(128);
+	SELECT @CurrentSchema = DEFAULT_SCHEMA_NAME 
+	FROM sys.database_principals 
+	WHERE name = CURRENT_USER;
+	IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = @CurrentSchema AND TABLE_NAME = 'migrations')
+
+	BEGIN
+		DECLARE @SQL NVARCHAR(MAX) = 'CREATE TABLE ' + QUOTENAME(@CurrentSchema) + '.[migrations] (
+			id INT PRIMARY KEY IDENTITY(1,1),
+			name NVARCHAR(255) NOT NULL,
+			description NVARCHAR(MAX),
+			applied_at DATETIME NOT NULL
+		)';
+
+		EXEC sp_executesql @SQL;
+	END
+	`
+
+	_, err := mr.Db.DbObj.Exec(query)
+	if err != nil {
+		return fmt.Errorf("x> error creating migrationstable: %v", err.Error())
+	}
+	return nil
+}
+
+func (mr *MigrationRunner) ConvertToStruct(targetDir string, index int, jsonMapping bool) string {
+	var targetMigration Migration = mr.Migrations[index]
+
+	fields := ""
+	for _, field := range targetMigration.Fields {
+		fields += fmt.Sprintf("%v %v\n", field.Name, field.DataType)
+
 	}
 
-	return queries
+	return fmt.Sprintf("type %v struct {%v}", targetMigration.TableName, fields)
+}
+
+func (mr *MigrationRunner) AddMigration(tableName string, fields []MigrationField) {
+	mr.Migrations = append(mr.Migrations, Migration{
+		TableName: tableName,
+		Fields:    fields,
+	})
 }
 
 func (ms *MigrationRunner) LogMigration(tableName string, description string) error {
@@ -174,88 +203,52 @@ func (ms *MigrationRunner) LogMigration(tableName string, description string) er
 	return nil
 }
 
-func (ms *MigrationRunner) IsMigrationApplied(name string) (bool, error) {
-	query := fmt.Sprintf(`
-        DECLARE @MigrationName NVARCHAR(255) = '%s';
-        DECLARE @CurrentSchema NVARCHAR(128);
-        DECLARE @Count INT = 0;
-        DECLARE @SQL NVARCHAR(MAX);
-        
-        SELECT @CurrentSchema = DEFAULT_SCHEMA_NAME 
-        FROM sys.database_principals 
-        WHERE name = CURRENT_USER;
-        
-        SET @SQL = N'SELECT @CountOUT = COUNT(*) FROM ' + QUOTENAME(@CurrentSchema) + '.migrations WHERE name = @MigrationName';
-        
-        EXEC sp_executesql @SQL, 
-             N'@MigrationName NVARCHAR(255), @CountOUT INT OUTPUT', 
-             @MigrationName = @MigrationName, 
-             @CountOUT = @Count OUTPUT;
-        
-        SELECT @Count;
-    `, name)
-
-	var count int
-	err := ms.Db.DbObj.QueryRow(query).Scan(&count)
-
-	if err != nil {
-		return false, fmt.Errorf("fehler beim Prüfen der Migration: %v", err)
-	}
-	return count > 0, nil
+type MigrationField struct {
+	Name          string
+	DataType      string
+	Nullable      bool
+	PrimaryKey    bool
+	AutoIncrement bool
 }
 
-func (mr *MigrationRunner) SetupMigrationTable() error {
-	query := `
-
-	DECLARE @CurrentSchema NVARCHAR(128);
-	SELECT @CurrentSchema = DEFAULT_SCHEMA_NAME 
-	FROM sys.database_principals 
-	WHERE name = CURRENT_USER;
-	IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = @CurrentSchema AND TABLE_NAME = 'migrations')
-
-	BEGIN
-		DECLARE @SQL NVARCHAR(MAX) = 'CREATE TABLE ' + QUOTENAME(@CurrentSchema) + '.[migrations] (
-			id INT PRIMARY KEY IDENTITY(1,1),
-			name NVARCHAR(255) NOT NULL,
-			description NVARCHAR(MAX),
-			applied_at DATETIME NOT NULL
-		)';
-
-		EXEC sp_executesql @SQL;
-	END
-	`
-
-	_, err := mr.Db.DbObj.Exec(query)
-	if err != nil {
-		return fmt.Errorf("x> error creating migrationstable: %v", err)
-	}
-	return nil
+type ForeignKey struct {
+	Name            string
+	Column          string
+	ReferenceTable  string
+	ReferenceColumn string
 }
 
-func (mr *MigrationRunner) ConvertToStruct(targetDir string, index int, jsonMapping bool) string {
-	var targetMigration Migration = mr.Migrations[index]
-
-	fields := ""
-	for _, field := range targetMigration.Fields {
-		fields += fmt.Sprintf("%v %v\n", field.Name, field.DataType)
-
-	}
-
-	return fmt.Sprintf("type %v struct {%v}", targetMigration.TableName, fields)
+type Migration struct {
+	TableName   string
+	Description string
+	Fields      []MigrationField
+	ForeignKeys []ForeignKey
 }
 
-func CreateMigrationRunner(db *MssqlDb) MigrationRunner {
-	return MigrationRunner{
-		Db:         db,
-		Migrations: []Migration{},
-	}
-}
+func (m *Migration) CreateForeignKeyQueries(schema string) []string {
+	var queries []string
 
-func (mr *MigrationRunner) AddMigration(tableName string, fields []MigrationField) {
-	mr.Migrations = append(mr.Migrations, Migration{
-		TableName: tableName,
-		Fields:    fields,
-	})
+	for _, fk := range m.ForeignKeys {
+		query := fmt.Sprintf(`
+            IF NOT EXISTS (SELECT * FROM sys.foreign_keys 
+                           WHERE name = '%s' AND parent_object_id = OBJECT_ID('[%s].[%s]'))
+            BEGIN
+                ALTER TABLE [%s].[%s] WITH CHECK ADD CONSTRAINT [%s] FOREIGN KEY([%s])
+                REFERENCES [%s].[%s] ([%s]);
+
+                ALTER TABLE [%s].[%s] CHECK CONSTRAINT [%s];
+            END
+        `,
+			fk.Name,
+			schema, m.TableName,
+			schema, m.TableName, fk.Name, fk.Column,
+			schema, fk.ReferenceTable, fk.ReferenceColumn,
+			schema, m.TableName, fk.Name)
+
+		queries = append(queries, strings.TrimSpace(query))
+	}
+
+	return queries
 }
 
 func (m *Migration) CreateQuery() string {
@@ -309,9 +302,9 @@ func (m *Migration) CreateQuery() string {
 	return strings.TrimSpace(query)
 }
 
-func (m *Migration) AddField(name string, dataType string) {
-	m.Fields = append(m.Fields, MigrationField{
-		Name:     name,
-		DataType: dataType,
-	})
+func CreateMigrationRunner(db *MssqlDb) MigrationRunner {
+	return MigrationRunner{
+		Db:         db,
+		Migrations: []Migration{},
+	}
 }
