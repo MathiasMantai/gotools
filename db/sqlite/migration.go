@@ -133,7 +133,7 @@ func (m *Migration) CreateForeignKeyQueries() []string {
 			m.TableName, 
 			fk.Name, 
 			fk.Column, 
-			fk,fk.ReferenceTable, 
+			fk.ReferenceTable, 
 			fk.ReferenceColumn,
 		)
 
@@ -145,8 +145,8 @@ func (m *Migration) CreateForeignKeyQueries() []string {
 
 func (m *Migration) CreateQuery() string {
 	var fieldDefs []string
-	fmt.Println(m.Fields)
-	for key, field := range m.Fields {
+
+	for _, field := range m.Fields {
 		fieldDef := fmt.Sprintf("%s %s", field.Name, strings.ToUpper(field.DataType))
 
 		if field.Nullable {
@@ -161,16 +161,19 @@ func (m *Migration) CreateQuery() string {
 			fieldDef += " PRIMARY KEY"
 		}
 
-		if key < len(m.Fields) - 1 {
-			fieldDef += ","
-		}
-
-		fieldDef += "\n\t"
-
 		fieldDefs = append(fieldDefs, fieldDef)
 	}
 
-	fieldsString := strings.Join(fieldDefs, "")
+	for _, fk := range m.ForeignKeys {
+        fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s (%s)", 
+            fk.Column, 
+            fk.ReferenceTable, 
+            fk.ReferenceColumn,
+        )
+        fieldDefs = append(fieldDefs, fkDef)
+    }
+
+	fieldsString := strings.Join(fieldDefs, ",\n\t")
 
 	return fmt.Sprintf(`
 		CREATE TABLE %v (

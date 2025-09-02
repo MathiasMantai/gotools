@@ -1,3 +1,7 @@
+## v0.2.1 (2025-09-02)
+- created a wrapper for migrations for all supported database types
+- created migrations for mysql and sqlite
+
 ## v0.2.0 (2025-08-19)
 
 ### db Package
