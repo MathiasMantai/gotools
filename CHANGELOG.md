@@ -1,3 +1,8 @@
+## v0.3.0 (2025-09-10)
+- added a hashing package
+- added function HashString, which hashes a string with the argon2id algorithm with secure parameters (based on optimal parameters found on OWASP)
+- added function CompareStringAndHash, which compares a hashed value with a plain string
+
 ## v0.2.1 (2025-09-02)
 - created a wrapper for migrations for all supported database types
 - created migrations for mysql and sqlite
