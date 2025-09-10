@@ -214,7 +214,7 @@ func (mr *MigrationRunner) Run() error {
 				for i, fkQuery := range fkQueries {
 					_, err := mr.Db.DbObj.Exec(fkQuery)
 					if err != nil {
-						cli.PrintWithTimeAndColor(fmt.Sprintf("x> error executing foreign key %d for %v: %v", i+1, migrationText, err.Error), "red", true)
+						cli.PrintWithTimeAndColor(fmt.Sprintf("x> error executing foreign key %d for %v: %v", i+1, migrationText, err.Error()), "red", true)
 						return err
 					}
 				}
