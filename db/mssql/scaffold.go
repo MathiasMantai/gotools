@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"fmt"
+	// "errors"
 )
 
 // add functionality to create methods, both for normal db objects and transaction objects (tx)
@@ -17,6 +18,7 @@ type ScaffoldOptions struct {
 	ModelDirectoryName  string              `json:"model_directory_name"`
 	TableFilter         TableFilter         `json:"table_filter"`
 	Schema              string              `json:"schema"`
+	
 }
 
 type TableFilter struct {
@@ -38,6 +40,8 @@ type Column struct {
 	OrdinalPosition int16   `json:"ordinal_position"`
 }
 
+
+
 /**
 
 Scan the database and analyse the structure of select/all tables (option to only select specific ones)
@@ -45,7 +49,6 @@ Scan the database and analyse the structure of select/all tables (option to only
 */
 
 func (sc *Scaffold) Run(db *MssqlDb) error {
-
 	if sc.QueryBuilder == nil {
 		sc.QueryBuilder = NewQueryBuilder()
 	}
@@ -57,6 +60,12 @@ func (sc *Scaffold) Run(db *MssqlDb) error {
 	}
 
 	fmt.Println(tables)
+
+	// err = sc.CreateScaffolding(tables)
+
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -133,12 +142,10 @@ func (sc *Scaffold) ScanDb(db *MssqlDb) ([]Table, error) {
 
 			table.Columns = append(table.Columns, column)
 		}
+
+		rs = append(rs, table)
 	}
 
 	return rs, nil
 }
 
-func (sc *Scaffold) CreateScaffolding() error {
-
-	return nil
-}
