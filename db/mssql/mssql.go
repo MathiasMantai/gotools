@@ -20,8 +20,9 @@ type DbConnData struct {
 }
 
 type MssqlDb struct {
-	DbObj    *sql.DB
-	ConnData DbConnData
+	DbObj      *sql.DB
+	ConnData   DbConnData
+	Scaffolder *Scaffold
 }
 
 func (mdb *MssqlDb) BeginTx(ctx context.Context, options *sql.TxOptions) (*sql.Tx, error) {
@@ -60,6 +61,9 @@ func Connect(server string, port string, database string, user string, pw string
 
 	db.DbObj = dbObj
 
+	//create scaffolder
+	db.Scaffolder = &Scaffold{}
+
 	return &db, nil
 }
 
@@ -95,4 +99,20 @@ func (ms *MssqlDb) Migrate(migrationPath string) error {
 	tx.Commit()
 
 	return nil
+}
+
+func (mdb *MssqlDb) SetScaffoldOptions(options ScaffoldOptions) {
+	options.DatabaseCredentials = DatabaseCredentials{
+		Server:   mdb.ConnData.Server,
+		Database: mdb.ConnData.Database,
+		Port:     mdb.ConnData.Port,
+		User:     mdb.ConnData.User,
+		Password: mdb.ConnData.Pw,
+	}
+
+	mdb.Scaffolder.Options = options
+}
+
+func (mdb *MssqlDb) RunScaffold() error {
+	return mdb.Scaffolder.Run(mdb)
 }
