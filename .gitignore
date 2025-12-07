@@ -14,3 +14,5 @@ logs
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+model
+model/*

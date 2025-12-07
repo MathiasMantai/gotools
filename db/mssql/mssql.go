@@ -21,6 +21,7 @@ type DbConnData struct {
 
 type MssqlDb struct {
 	DbObj      *sql.DB
+	Qb         *QueryBuilder
 	ConnData   DbConnData
 	Scaffolder *Scaffold
 }

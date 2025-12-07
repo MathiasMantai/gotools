@@ -9,14 +9,6 @@ type QueryBuilder struct {
 	Query string
 }
 
-var supportedTypes = []string{
-	"mysql",
-	"mssql",
-	"sqlite",
-	"sqlite3",
-	"postgres",
-}
-
 func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{}
 }

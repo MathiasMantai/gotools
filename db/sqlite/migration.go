@@ -21,7 +21,7 @@ func (mr *MigrationRunner) Run() error {
 
 	for key, migration := range mr.Migrations {
 		migrationText := fmt.Sprintf("migration %d - %s", key, migration.TableName)
-		cli.PrintWithTimeAndColor("=> attempting to apply " + migrationText, "blue", true)
+		cli.PrintWithTimeAndColor("=> attempting to apply "+migrationText, "blue", true)
 
 		applied, err := mr.IsMigrationApplied(migration.TableName)
 		if err != nil {
@@ -84,7 +84,6 @@ func (mr *MigrationRunner) SetupMigrationTable() error {
 	return err
 }
 
-
 func (mr *MigrationRunner) LogMigration(tableName string, description string) error {
 	query := `
 		INSERT INTO _migrations
@@ -129,11 +128,11 @@ func (m *Migration) CreateForeignKeyQueries() []string {
 	queries := []string{}
 
 	for _, fk := range m.ForeignKeys {
-		query := fmt.Sprintf(`ALTER TABLE %s WITH CHECK ADD CONSTRAINT %s FOREIGN KEY(%s) REFERENCES %s (%s)`, 
-			m.TableName, 
-			fk.Name, 
-			fk.Column, 
-			fk.ReferenceTable, 
+		query := fmt.Sprintf(`ALTER TABLE %s WITH CHECK ADD CONSTRAINT %s FOREIGN KEY(%s) REFERENCES %s (%s)`,
+			m.TableName,
+			fk.Name,
+			fk.Column,
+			fk.ReferenceTable,
 			fk.ReferenceColumn,
 		)
 
@@ -165,13 +164,13 @@ func (m *Migration) CreateQuery() string {
 	}
 
 	for _, fk := range m.ForeignKeys {
-        fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s (%s)", 
-            fk.Column, 
-            fk.ReferenceTable, 
-            fk.ReferenceColumn,
-        )
-        fieldDefs = append(fieldDefs, fkDef)
-    }
+		fkDef := fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s (%s)",
+			fk.Column,
+			fk.ReferenceTable,
+			fk.ReferenceColumn,
+		)
+		fieldDefs = append(fieldDefs, fkDef)
+	}
 
 	fieldsString := strings.Join(fieldDefs, ",\n\t")
 

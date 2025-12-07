@@ -19,8 +19,9 @@ type GotoolsDb interface {
 }
 
 type Db struct {
-	DbObj  GotoolsDb
-	DbType string
+	DbObj      GotoolsDb
+	DbType     string
+	Scaffolder Scaffold
 }
 
 type DbConnectOptions struct {
@@ -232,7 +233,6 @@ func CreateMigrations(db *Db, migrations []Migration) error {
 				runner.Db = sqliteDb
 				for _, migration := range migrations {
 					var realMigration sqlite.Migration
-					
 
 					realMigration.TableName = migration.TableName
 					realMigration.Description = migration.Description
@@ -275,4 +275,11 @@ func CreateMigrations(db *Db, migrations []Migration) error {
 	default:
 		return fmt.Errorf("unsupported Database type %v", db.DbType)
 	}
+}
+
+/***************
+	Scaffold
+****************/
+
+type Scaffold interface {
 }

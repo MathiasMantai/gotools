@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-
 func TestHashing(t *testing.T) {
 	passwords := []string{
 		"123456",
