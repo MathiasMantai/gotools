@@ -14,7 +14,7 @@ func Load(filePaths []string) error {
 		}
 		contentParts := strings.Split(string(content), "\n")
 		for _, envRow := range contentParts {
-			if strings.TrimSpace(envRow) == "" {
+			if strings.TrimSpace(envRow) == "" || strings.HasPrefix(envRow, "#") {
 				continue
 			}
 
