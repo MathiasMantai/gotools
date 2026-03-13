@@ -1,22 +1,21 @@
 package env
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-	"errors"
 )
-
 
 func TestGet(t *testing.T) {
 
 	testCases := []struct {
-		name string
-		key string
+		name         string
+		key          string
 		defaultValue string
-		expected string
-		setenv bool
+		expected     string
+		setenv       bool
 	}{
 		{"Value exists", "TEST_VAR1", "", "Hallo Welt", true},
 		{"Value does not exist", "TEST_VAR2", "default_value", "default_value", false},
@@ -60,11 +59,11 @@ func TestLoad(t *testing.T) {
 			}
 
 			tmpParts := strings.Split(testRow, "=")
-			
+
 			if len(tmpParts) != 2 {
 				t.Fatal(errors.New("invalid testrow"))
 			}
-			
+
 			os.Unsetenv(strings.TrimSpace(tmpParts[0]))
 		}
 
@@ -82,6 +81,6 @@ func TestLoad(t *testing.T) {
 		if os.Getenv("USER") != "terminal_user" {
 			t.Errorf("=> Load(): expected: %v. actual: %v", "terminal_user", os.Getenv("USER"))
 		}
-		
+
 	})
 }

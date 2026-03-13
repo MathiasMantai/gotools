@@ -74,7 +74,7 @@ func (q *QueryBuilder) OrderBy(columns []string) *QueryBuilder {
 	length := len(columns)
 	for key, column := range columns {
 		q.Query += fmt.Sprintf("%v", column)
-		if key < length - 1 {
+		if key < length-1 {
 			q.Query += ", "
 		}
 	}

@@ -19,9 +19,8 @@ type GotoolsDb interface {
 }
 
 type Db struct {
-	DbObj      GotoolsDb
-	DbType     string
-	Scaffolder Scaffold
+	DbObj  GotoolsDb
+	DbType string
 }
 
 type DbConnectOptions struct {
@@ -31,10 +30,8 @@ type DbConnectOptions struct {
 	//is used as filepath for sqlite
 	Database string
 
-	User string
-	Pw   string
-
-	//mainly used for mysql. default is tcp
+	User     string
+	Pw       string
 	Protocol string
 }
 
@@ -275,11 +272,4 @@ func CreateMigrations(db *Db, migrations []Migration) error {
 	default:
 		return fmt.Errorf("unsupported Database type %v", db.DbType)
 	}
-}
-
-/***************
-	Scaffold
-****************/
-
-type Scaffold interface {
 }
