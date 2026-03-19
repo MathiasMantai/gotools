@@ -170,14 +170,30 @@ func (l *Logger) LogMessage(message string) {
 	l.PrintMessage("message", message)
 }
 
+func (l *Logger) LogMessagef(format string, a ...any) {
+	l.PrintMessage("message", fmt.Sprintf(format, a...))
+}
+
 func (l *Logger) LogError(message string) {
 	l.PrintMessage("error", message)
+}
+
+func (l *Logger) LogErrorf(format string, a ...any) {
+	l.PrintMessage("error", fmt.Sprintf(format, a...))
 }
 
 func (l *Logger) LogSuccess(message string) {
 	l.PrintMessage("success", message)
 }
 
+func (l *Logger) LogSuccessf(format string, a ...any) {
+	l.PrintMessage("success", fmt.Sprintf(format, a...))
+}
+
 func (l *Logger) LogWarning(message string) {
 	l.PrintMessage("warning", message)
+}
+
+func (l *Logger) LogWarningf(format string, a ...any) {
+	l.PrintMessage("warning", fmt.Sprintf(format, a...))
 }
