@@ -47,7 +47,6 @@ func TestFormatting(t *testing.T) {
 	}
 }
 
-
 func TestFileLogging(t *testing.T) {
 	tmpDir := t.TempDir()
 	logFile := filepath.Join(tmpDir, "test.log")
@@ -74,7 +73,6 @@ func TestFileLogging(t *testing.T) {
 		t.Errorf("Nachricht nicht in Datei gefunden. Dateiinhalt: %s", string(content))
 	}
 }
-
 
 func TestColorSelection(t *testing.T) {
 	opts := &LoggerOptions{
