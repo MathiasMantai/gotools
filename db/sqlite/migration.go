@@ -1,10 +1,10 @@
 package sqlite
 
 import (
+	"database/sql"
 	"fmt"
-	"strings"
-
 	"github.com/MathiasMantai/gotools/cli"
+	"strings"
 )
 
 type MigrationRunner struct {
@@ -13,7 +13,6 @@ type MigrationRunner struct {
 }
 
 func (mr *MigrationRunner) Run() error {
-
 	err := mr.SetupMigrationTable()
 	if err != nil {
 		return fmt.Errorf("error creating migrations table: %v", err.Error())
@@ -23,22 +22,42 @@ func (mr *MigrationRunner) Run() error {
 		migrationText := fmt.Sprintf("migration %d - %s", key, migration.TableName)
 		cli.PrintWithTimeAndColor("=> attempting to apply "+migrationText, "blue", true)
 
-		applied, err := mr.IsMigrationApplied(migration.TableName)
+		if len(migration.Fields) == 0 {
+			cli.PrintWithTimeAndColor(fmt.Sprintf("=> skipping %v since no fields were declared for table", migrationText), "yellow", true)
+			continue
+		}
+
+		applied, err := mr.IsMigrationLogged(migration.TableName)
 		if err != nil {
-			return fmt.Errorf("error while checking if migration is already applied: %v", err.Error())
+			return fmt.Errorf("error while checking if migration is already logged: %v", err.Error())
 		}
 
 		if !applied {
-			createQuery := migration.CreateQuery()
-			_, err := mr.Db.DbObj.Exec(createQuery)
+			tx, err := mr.Db.DbObj.Begin()
 			if err != nil {
-				return fmt.Errorf("error creating table: %v", err.Error())
+				return fmt.Errorf("error starting transaction for migration %s: %v", migration.TableName, err.Error())
 			}
 
-			err = mr.LogMigration(migration.TableName, migration.Description)
+			createQuery := migration.CreateQuery()
+			fmt.Println(createQuery)
+			_, err = tx.Exec(createQuery)
 			if err != nil {
-				return fmt.Errorf("error logging table: %v", err.Error())
+				tx.Rollback()
+				return fmt.Errorf("error creating table %s: %v", migration.TableName, err.Error())
 			}
+
+			// Migration loggen
+			err = mr.LogMigrationTx(tx, migration.TableName, migration.Description)
+			if err != nil {
+				tx.Rollback()
+				return fmt.Errorf("error logging table %s: %v", migration.TableName, err.Error())
+			}
+
+			err = tx.Commit()
+			if err != nil {
+				return fmt.Errorf("error committing transaction for migration %s: %v", migration.TableName, err.Error())
+			}
+
 			cli.PrintWithTimeAndColor("=> migration successfully applied and logged", "green", true)
 		} else {
 			cli.PrintWithTimeAndColor(fmt.Sprintf("=> %v already applied. Skipping...", migrationText), "yellow", true)
@@ -51,15 +70,13 @@ func (mr *MigrationRunner) Run() error {
 	return nil
 }
 
-func (mr *MigrationRunner) IsMigrationApplied(tableName string) (bool, error) {
+func (mr *MigrationRunner) IsMigrationLogged(tableName string) (bool, error) {
 	query := `
 		SELECT 
 			COUNT(*) 
 		FROM 
-			sqlite_master
+			_migrations
 		WHERE
-			type = 'table'
-		AND 
 			name = ?
 	`
 	var cnt int8
@@ -71,20 +88,18 @@ func (mr *MigrationRunner) IsMigrationApplied(tableName string) (bool, error) {
 }
 
 func (mr *MigrationRunner) SetupMigrationTable() error {
-
 	query := `
 		CREATE TABLE IF NOT EXISTS _migrations (
-			name VARCHAR(255) NOT NULL,
+			name VARCHAR(255) NOT NULL UNIQUE, -- UNIQUE hinzugefügt
 			description TEXT NULL,
 			applied_at DATETIME NOT NULL DEFAULT current_timestamp 
 		);
 	`
-
 	_, err := mr.Db.DbObj.Exec(query)
 	return err
 }
 
-func (mr *MigrationRunner) LogMigration(tableName string, description string) error {
+func (mr *MigrationRunner) LogMigrationTx(tx *sql.Tx, tableName string, description string) error {
 	query := `
 		INSERT INTO _migrations
 		(
@@ -97,7 +112,17 @@ func (mr *MigrationRunner) LogMigration(tableName string, description string) er
 			?
 		)
 	`
+	_, err := tx.Exec(query, tableName, description)
+	return err
+}
 
+func (mr *MigrationRunner) LogMigration(tableName string, description string) error {
+	query := `
+		INSERT INTO _migrations
+			(name, description)
+		VALUES
+			(?, ?)
+	`
 	_, err := mr.Db.DbObj.Exec(query, tableName, description)
 	return err
 }
@@ -126,19 +151,16 @@ type ForeignKey struct {
 
 func (m *Migration) CreateForeignKeyQueries() []string {
 	queries := []string{}
-
 	for _, fk := range m.ForeignKeys {
-		query := fmt.Sprintf(`ALTER TABLE %s WITH CHECK ADD CONSTRAINT %s FOREIGN KEY(%s) REFERENCES %s (%s)`,
+		query := fmt.Sprintf(`ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY(%s) REFERENCES %s (%s)`,
 			m.TableName,
 			fk.Name,
 			fk.Column,
 			fk.ReferenceTable,
 			fk.ReferenceColumn,
 		)
-
 		queries = append(queries, query)
 	}
-
 	return queries
 }
 
@@ -154,10 +176,12 @@ func (m *Migration) CreateQuery() string {
 			fieldDef += " NOT NULL"
 		}
 
-		//a primary key fields auto incremnts
-
 		if field.PrimaryKey {
-			fieldDef += " PRIMARY KEY"
+			if field.AutoIncrement && strings.ToUpper(field.DataType) == "INTEGER" {
+				fieldDef += " PRIMARY KEY AUTOINCREMENT"
+			} else {
+				fieldDef += " PRIMARY KEY"
+			}
 		}
 
 		fieldDefs = append(fieldDefs, fieldDef)
