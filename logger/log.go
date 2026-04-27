@@ -13,6 +13,10 @@ type Logger struct {
 }
 
 type LoggerOptions struct {
+
+	//log message prefix. will be prepended to all messages
+	Prefix string `json:"prefix" yaml:"prefix"`
+
 	// Filename is the file to write logs to.  Backup log files will be retained
 	// in the same directory.  It uses <processname>-lumberjack.log in
 	// os.TempDir() if empty.
@@ -143,6 +147,12 @@ func (l *Logger) PrintMessage(messageType string, message string) {
 	default:
 		color = l.Options.MessageColor
 	}
+
+
+	if strings.TrimSpace(l.Options.Prefix) != "" {
+		message = fmt.Sprintf("%v %v", l.Options.Prefix, message)
+	}
+	
 
 	//print to console
 	if l.Options.LogWithTimestamp {
